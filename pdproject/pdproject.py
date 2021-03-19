@@ -1,16 +1,20 @@
 import re
+import os
+import configparser
+
+config = configparser.ConfigParser()
+config.read('config.ini')
+CORPUS_DIR = config['DEFAULT']['CorpusDirectory']
 
 class Document:
     def __init__(self, filename):
         self.filename = filename
-        self.num_paragraphs = 0
         self.paragraphs = []
         self.num_sentences = 0
         self.sentences = []
 
-    def add_paragraph(self, paragraph):
-        self.paragraphs.append(paragraph)
-        self.num_paragraphs += 1
+    def add_paragraphs(self, paragraphs):
+        self.paragraphs += paragraphs
 
     def add_sentence(self, sentence):
         self.sentences.append(sentence)
@@ -18,14 +22,14 @@ class Document:
 
     def info(self):
         print("Filename:", self.filename)
-        print("# paragraphs: {num}".format(num=self.num_paragraphs))
+        print("# paragraphs: {num}".format(num=len(self.paragraphs)))
         print("# sentences: {num}".format(num=self.num_sentences))
 
     def print_paragraphs(self):
-        if self.num_paragraphs > 0:
+        if len(self.paragraphs) > 0:
             print("Paragraphs in '{filename}':".format(filename=self.filename))
             for i, para in enumerate(self.paragraphs):
-                print("paragraphs[{i}]: {para}".format(i=i, para=para))
+                print("{file}->paragraphs[{i}]: {para}".format(file=self.filename, i=i, para=para))
         else:
             print("No paragraphs in '{filename}' to display.".format(filename=self.filename))
 
@@ -67,5 +71,20 @@ def split_sentences(st):
     else:
         return sentences[:-1]
 
+def compile_documents() -> list:
+    documents = []
+    for file in os.listdir(CORPUS_DIR):
+        if file.lower().endswith(".txt"):
+            with open(os.path.join(CORPUS_DIR, file), 'r') as f:
+                doc = Document(file)
+                raw_text = f.read()
+                paragraphs = raw_text.splitlines()
+                paragraphs = list(filter(None, paragraphs))
+                doc.add_paragraphs(paragraphs)
+                documents.append(doc)
+    return documents
+
 if __name__ == '__main__':
-    print("Nothing to see here!")
+    documents = compile_documents()
+    documents[0].info()
+    documents[0].print_paragraphs()
