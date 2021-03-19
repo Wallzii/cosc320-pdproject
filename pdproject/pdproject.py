@@ -10,34 +10,32 @@ class Document:
     def __init__(self, filename):
         self.filename = filename
         self.paragraphs = []
-        self.num_sentences = 0
         self.sentences = []
 
     def add_paragraphs(self, paragraphs):
         self.paragraphs += paragraphs
 
-    def add_sentence(self, sentence):
-        self.sentences.append(sentence)
-        self.num_sentences += 1
+    def add_sentences(self, sentences):
+        self.sentences += sentences
 
     def info(self):
         print("Filename:", self.filename)
         print("# paragraphs: {num}".format(num=len(self.paragraphs)))
-        print("# sentences: {num}".format(num=self.num_sentences))
+        print("# sentences: {num}".format(num=len(self.sentences)))
 
     def print_paragraphs(self):
         if len(self.paragraphs) > 0:
-            print("Paragraphs in '{filename}':".format(filename=self.filename))
+            print("Paragraphs in document '{filename}':".format(filename=self.filename))
             for i, para in enumerate(self.paragraphs):
                 print("{file}->paragraphs[{i}]: {para}".format(file=self.filename, i=i, para=para))
         else:
             print("No paragraphs in '{filename}' to display.".format(filename=self.filename))
 
     def print_sentences(self):
-        if self.num_sentences > 0:
-            print("Sentences in '{filename}':".format(filename=self.filename))
+        if len(self.sentences) > 0:
+            print("Sentences in document '{filename}':".format(filename=self.filename))
             for i, sentence in enumerate(self.sentences):
-                print("sentence[{i}]: {sentence}".format(i=i, sentence=sentence))
+                print("{file}->sentence[{i}]: {sentence}".format(file=self.filename, i=i, sentence=sentence))
         else:
             print("No sentences in '{filename}' to display.".format(filename=self.filename))
 
@@ -81,6 +79,8 @@ def compile_documents() -> list:
                 paragraphs = raw_text.splitlines()
                 paragraphs = list(filter(None, paragraphs))
                 doc.add_paragraphs(paragraphs)
+                sentences = split_sentences(raw_text)
+                doc.add_sentences(sentences)
                 documents.append(doc)
     return documents
 
@@ -88,3 +88,4 @@ if __name__ == '__main__':
     documents = compile_documents()
     documents[0].info()
     documents[0].print_paragraphs()
+    documents[0].print_sentences()
