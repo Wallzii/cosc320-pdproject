@@ -41,26 +41,23 @@ class Document:
 
 class Corpus:
     def __init__(self):
-        self.num_documents = 0
-        self.documents = []
+        self.documents = {}
 
-    def add_document(self, document: Document):
+    def add_document(self, filename, document: Document):
         if type(document) is Document:
-            self.documents.append(document)
-            self.num_documents += 1
+            self.documents[filename] = document
         else:
             raise TypeError("Parameter of add_document() must be of type Document.")
 
     def info(self):
-        print("# documents in corpus: {num}".format(num=self.num_documents))
+        print("# documents in corpus: {num}".format(num=len(self.documents)))
         self.__print_documents()
 
     def __print_documents(self):
-        if self.num_documents > 0:
-            for i, document in enumerate(self.documents):
-                print("document[{i}]: {document}".format(i=i, document=document.filename))
+        if len(self.documents) > 0:
+            print("Document keys in corpus: {keys}".format(keys=[*self.documents]))
         else:
-            print("No documents in Corpus to display.")
+            print("No document keys in corpus to display.")
 
 def split_sentences(st):
     sentences = re.split(r'[.?!]\s*', st)
@@ -85,7 +82,11 @@ def compile_documents() -> list:
     return documents
 
 if __name__ == '__main__':
+    corpus = Corpus()
     documents = compile_documents()
     documents[0].info()
     documents[0].print_paragraphs()
     documents[0].print_sentences()
+    corpus.add_document(documents[0].filename, documents[0])
+    corpus.add_document(documents[1].filename, documents[1])
+    corpus.info()
