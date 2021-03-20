@@ -2,6 +2,7 @@
 import re
 import os
 import configparser
+from kmp import KMP
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -158,7 +159,7 @@ def compile_document():
     file = os.listdir(PLAG_DIR)
     if file[0].lower().endswith(".txt"):
         with open(os.path.join(PLAG_DIR, file[0]), 'r') as f:
-                doc = Document(file)
+                doc = Document(file[0])
                 raw_text = f.read()
                 paragraphs = raw_text.splitlines()
                 paragraphs = list(filter(None, paragraphs))
@@ -194,8 +195,14 @@ if __name__ == '__main__':
     corpus = compile_corpus(documents)
 
     plagiarized = compile_document()
-    if plagiarized != False:
-        print("We have a document!")
+    # if plagiarized != False:
+    #     print("We have a document of type {type}!".format(type=type(plagiarized)))
+    #     plagiarized.info()
+
+    for key in corpus.documents:
+        # corpus.documents[key].info()
+        # print(corpus.documents[key].sentences)
+        KMP(plagiarized.sentences, corpus.documents[key].sentences)
 
     # Examples:
     # corpus.info() # Display amount of documents in corpus along with their keys.
