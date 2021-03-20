@@ -1,7 +1,7 @@
 # cosc320-pdproject
 Plagiarism detection problem for COSC 320. Use and analysis of KMP, LCSS, and Rabin-Karp.
 
-##To-Do's:
+## To-Do's:
 - Natural language processing for tokenization, stopward removal, stemming, etc. (nltk?)
 - Figure out strategy for iterating over corpus documents against the plagiarized document.
 
