@@ -4,7 +4,7 @@ Plagiarism detection problem for COSC 320. Use and analysis of KMP, LCSS, and Ra
 ## To-Do's:
 - Natural language processing for tokenization, stopward removal, stemming, etc. (nltk?)
 - Figure out strategy for iterating over corpus documents against the plagiarized document.
-- Find graphing package to track algorithm runtime.
+- ~~Find graphing package to track algorithm runtime.~~
 
 ## Known Issues:
 - ~~Multiple punctuations at the end of sentences parsed by split_sentences() create empty sentences equal to the amount of punctuations after the first.~~
