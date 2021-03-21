@@ -2,7 +2,11 @@
 import re
 import os
 import configparser
-from kmp import KMP
+import matplotlib
+import numpy as np
+import matplotlib.pyplot as plt
+from kmp import KMPSearch
+from tryItABunch import tryItABunch, tryItABunchKMP, tryItABunchKMP2, tryItABunchKMP3
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -199,10 +203,10 @@ if __name__ == '__main__':
     #     print("We have a document of type {type}!".format(type=type(plagiarized)))
     #     plagiarized.info()
 
-    for key in corpus.documents:
-        # corpus.documents[key].info()
-        # print(corpus.documents[key].sentences)
-        KMP(plagiarized.sentences, corpus.documents[key].sentences)
+    # for key in corpus.documents:
+    #     # corpus.documents[key].info()
+    #     # print(corpus.documents[key].sentences)
+    #     KMP(plagiarized.sentences, corpus.documents[key].sentences)
 
     # Examples:
     # corpus.info() # Display amount of documents in corpus along with their keys.
@@ -211,7 +215,16 @@ if __name__ == '__main__':
     # doc1.print_paragraphs() # Show all paragraphs contained in that document.
     # doc1.print_sentences() # Show all sentences contained in that document.
 
+    # Runtime analysis examples:
+    # nValuesNaive, tValuesNaive = tryItABunchKMP( KMPSearch, startN = 50, endN = 10000, stepSize=50, numTrials=10, patternLength = 10)
+    # nValues, tValues = tryItABunchKMP2( KMPSearch, startN = 50, endN = 10000, stepSize=50, numTrials=10)
+    # nValuesNaive2, tValuesNaive2 = tryItABunchKMP3( KMPSearch, startN = 50, endN = 10000, stepSize=50, numTrials=10, stringLength = 10)
 
-    # sentence_data = "The First sentence is about Python. The Second: about Django. You can learn Python,Django and Data Ananlysis here. "
-    # nltk_tokens = nltk.sent_tokenize(sentence_data)
-    # print(nltk_tokens)
+    # plt.plot(nValuesNaive, tValuesNaive, color="red", label="KMPSearch m < n")
+    # plt.plot(nValues, tValues, color="blue", label="KMPSearch m = n")
+    # plt.plot(nValuesNaive2, tValuesNaive2, color="green", label="KMPSearch m > n")
+    # plt.xlabel("n")
+    # plt.ylabel("Time(ms)")
+    # plt.legend()
+    # plt.title("KMPSearch Runtime")
+    # plt.show()
