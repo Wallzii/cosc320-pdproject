@@ -1,10 +1,13 @@
+# import nltk
 import re
 import os
 import configparser
+from kmp import KMP
 
 config = configparser.ConfigParser()
 config.read('config.ini')
 CORPUS_DIR = config['DEFAULT']['CorpusDirectory']
+PLAG_DIR = config['DEFAULT']['PlagiarizedDirectory']
 VERBOSE = config.getboolean('DEFAULT', 'VerboseMode')
 if VERBOSE:
     print("Verbose output enabled.")
@@ -86,7 +89,7 @@ class Corpus:
     def __init__(self):
         self.documents = {}
 
-    def add_document(self, filename, document: Document):
+    def add_document(self, filename: str, document: Document):
         """Adds a Document object to the documents dictionary of the corpus."""
         if type(document) is Document:
             self.documents[filename] = document
@@ -147,10 +150,29 @@ def compile_documents() -> list:
                 paragraphs = list(filter(None, paragraphs))
                 doc.add_paragraphs(paragraphs)
                 sentences = split_sentences(raw_text)
+                sentences = list(filter(None, sentences))
                 doc.add_sentences(sentences)
                 documents.append(doc)
     return documents
 
+def compile_document():
+    file = os.listdir(PLAG_DIR)
+    if file[0].lower().endswith(".txt"):
+        with open(os.path.join(PLAG_DIR, file[0]), 'r') as f:
+                doc = Document(file[0])
+                raw_text = f.read()
+                paragraphs = raw_text.splitlines()
+                paragraphs = list(filter(None, paragraphs))
+                doc.add_paragraphs(paragraphs)
+                sentences = split_sentences(raw_text)
+                sentences = list(filter(None, sentences))
+                doc.add_sentences(sentences)
+                return doc
+    else:
+        print("Invalid file type found: '{dir}'".format(dir=os.path.join(PLAG_DIR, file[0])))
+        print("Directory '{dir}' must contain only one file of '.txt' type.".format(dir=os.path.join(PLAG_DIR)))
+        return False
+    
 def compile_corpus(documents: list) -> Corpus:
     """
     Compiles a list of Document objects into a Corpus. When this function is called, 
@@ -172,9 +194,24 @@ if __name__ == '__main__':
     documents = compile_documents()
     corpus = compile_corpus(documents)
 
+    plagiarized = compile_document()
+    # if plagiarized != False:
+    #     print("We have a document of type {type}!".format(type=type(plagiarized)))
+    #     plagiarized.info()
+
+    for key in corpus.documents:
+        # corpus.documents[key].info()
+        # print(corpus.documents[key].sentences)
+        KMP(plagiarized.sentences, corpus.documents[key].sentences)
+
     # Examples:
-    corpus.info() # Display amount of documents in corpus along with their keys.
-    doc1 = corpus.get_document('test01.txt') # Get a specific document from the corpus.
-    doc1.info() # Display info for that specific document.
-    doc1.print_paragraphs() # Show all paragraphs contained in that document.
-    doc1.print_sentences() # Show all sentences contained in that document.
+    # corpus.info() # Display amount of documents in corpus along with their keys.
+    # doc1 = corpus.get_document('test01.txt') # Get a specific document from the corpus.
+    # doc1.info() # Display info for that specific document.
+    # doc1.print_paragraphs() # Show all paragraphs contained in that document.
+    # doc1.print_sentences() # Show all sentences contained in that document.
+
+
+    # sentence_data = "The First sentence is about Python. The Second: about Django. You can learn Python,Django and Data Ananlysis here. "
+    # nltk_tokens = nltk.sent_tokenize(sentence_data)
+    # print(nltk_tokens)
