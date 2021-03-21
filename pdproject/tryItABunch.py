@@ -35,8 +35,8 @@ def tryItABunchKMP(myFn, startN=10, endN=100, stepSize=10, numTrials=20, pattern
     nValues = []
     tValues = []
     for n in range(startN, endN, stepSize):
-        if n % 250 == 0:
-            print("{n}...".format(n=n))
+        if n % 1000 == 0:
+            print("{name}(), m < n: {n}...".format(name=myFn.__name__,n=n))
         # run myFn several times and average to get a decent idea.
         runtime = 0
         for t in range(numTrials):
@@ -51,14 +51,16 @@ def tryItABunchKMP(myFn, startN=10, endN=100, stepSize=10, numTrials=20, pattern
         runtime = runtime/numTrials
         nValues.append(n)
         tValues.append(runtime)
+    print("Analysis of {name}(), where m < n, finished!".format(name=myFn.__name__))
     return nValues, tValues
 
 # Analysis specific to KMPSearch (n = m variant):
-def tryItABunchKMP2(myFn, startN=10, endN=100, stepSize=10, numTrials=20):
+def tryItABunchKMPEqual(myFn, startN=10, endN=100, stepSize=10, numTrials=20):
     nValues = []
     tValues = []
     for n in range(startN, endN, stepSize):
-        print(n)
+        if n % 1000 == 0:
+            print("{name}(), m = n: {n}...".format(name=myFn.__name__,n=n))
         # run myFn several times and average to get a decent idea.
         runtime = 0
         for t in range(numTrials):
@@ -73,14 +75,16 @@ def tryItABunchKMP2(myFn, startN=10, endN=100, stepSize=10, numTrials=20):
         runtime = runtime/numTrials
         nValues.append(n)
         tValues.append(runtime)
+    print("Analysis of {name}(), where m = n, finished!".format(name=myFn.__name__))
     return nValues, tValues
 
 # Analysis specific to KMPSearch (n < m variant):
-def tryItABunchKMP3(myFn, startN=10, endN=100, stepSize=10, numTrials=20, stringLength = 500):
+def tryItABunchKMPLargePat(myFn, startN=10, endN=100, stepSize=10, numTrials=20, stringLength = 500):
     nValues = []
     tValues = []
     for n in range(startN, endN, stepSize):
-        print(n)
+        if n % 1000 == 0:
+            print("{name}(), m > n: {n}...".format(name=myFn.__name__,n=n))
         # run myFn several times and average to get a decent idea.
         runtime = 0
         for t in range(numTrials):
@@ -95,6 +99,7 @@ def tryItABunchKMP3(myFn, startN=10, endN=100, stepSize=10, numTrials=20, string
         runtime = runtime/numTrials
         nValues.append(n)
         tValues.append(runtime)
+    print("Analysis of {name}(), where m > n, finished!".format(name=myFn.__name__))
     return nValues, tValues
 
 # next, you can do:
