@@ -5,7 +5,7 @@ import configparser
 import matplotlib
 import numpy as np
 import matplotlib.pyplot as plt
-from kmp import KMPSearch, KMPSearchGeeks
+from kmp import KMPSearch
 from tryItABunch import tryItABunch, tryItABunchKMP, tryItABunchKMPEqual, tryItABunchKMPLargePat
 
 config = configparser.ConfigParser()
@@ -13,6 +13,7 @@ config.read('config.ini')
 CORPUS_DIR = config['DEFAULT']['CorpusDirectory']
 PLAG_DIR = config['DEFAULT']['PlagiarizedDirectory']
 VERBOSE = config.getboolean('DEFAULT', 'VerboseMode')
+ANALYSIS_KMP = config.getboolean('DEFAULT', 'RuntimeAnalysis_KMP')
 if VERBOSE:
     print("Verbose output enabled.")
 
@@ -215,23 +216,22 @@ if __name__ == '__main__':
     # doc1.print_paragraphs() # Show all paragraphs contained in that document.
     # doc1.print_sentences() # Show all sentences contained in that document.
 
-    # Runtime analysis:
-    nValues, tValues = tryItABunchKMP( KMPSearch, startN = 50, endN = 20000, stepSize=50, numTrials=10, patternLength = 10)
-    nValuesEqual, tValuesEqual = tryItABunchKMPEqual( KMPSearch, startN = 50, endN = 20000, stepSize=50, numTrials=10)
-    nValuesLargePat, tValuesLargePat = tryItABunchKMPLargePat( KMPSearch, startN = 50, endN = 20000, stepSize=50, numTrials=10, stringLength = 10)
+    # Runtime analysis (set RuntimeAnalysis_KMP to True in config.ini):
+    if ANALYSIS_KMP:
+        # Plot m < n:
+        nValues, tValues = tryItABunchKMP( KMPSearch, startN = 50, endN = 20000, stepSize=50, numTrials=10, patternLength = 10)
+        plt.plot(nValues, tValues, color="red", label="KMPSearch() m < n")
 
-    # Plot m < n:
-    plt.plot(nValues, tValues, color="red", label="KMPSearch() m < n")
+        # Plot m = n:
+        nValuesEqual, tValuesEqual = tryItABunchKMPEqual( KMPSearch, startN = 50, endN = 20000, stepSize=50, numTrials=10)
+        plt.plot(nValuesEqual, tValuesEqual, color="blue", label="KMPSearch() m = n")
 
-    # Plot m = n:
-    plt.plot(nValuesEqual, tValuesEqual, color="blue", label="KMPSearch() m = n")
+        # # Plot m > n:
+        # nValuesLargePat, tValuesLargePat = tryItABunchKMPLargePat( KMPSearch, startN = 50, endN = 20000, stepSize=50, numTrials=10, stringLength = 10)
+        # plt.plot(nValuesLargePat, tValuesLargePat, color="green", label="KMPSearch() m > n")
 
-    # Plot m > n:
-    plt.plot(nValuesLargePat, tValuesLargePat, color="green", label="KMPSearch() m > n")
-
-
-    plt.xlabel("n")
-    plt.ylabel("Time(ms)")
-    plt.legend()
-    plt.title("KMPSearch Runtimes")
-    plt.show()
+        plt.xlabel("n")
+        plt.ylabel("Time(ms)")
+        plt.legend()
+        plt.title("KMPSearch Runtimes")
+        plt.show()

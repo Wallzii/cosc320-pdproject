@@ -1,11 +1,18 @@
+import configparser
+
+config = configparser.ConfigParser()
+config.read('config.ini')
+ANALYSIS_KMP = config.getboolean('DEFAULT', 'RuntimeAnalysis_KMP')
+
 def KMPSearch(pattern, string):
     m = len(pattern)
     n = len(string)
     lps = LPS(pattern)
 
-    print("Pattern: {pattern}".format(pattern=pattern))
-    print("String: {string}".format(string=string))
-    print("Longest prefix suffix: {lps}".format(lps=lps))
+    if not ANALYSIS_KMP:
+        print("Pattern: {pattern}".format(pattern=pattern))
+        print("String: {string}".format(string=string))
+        print("Longest prefix suffix: {lps}".format(lps=lps))
     
     matched = 0
     total_matches = 0
@@ -19,8 +26,9 @@ def KMPSearch(pattern, string):
             print("Pattern occurs at index {x}.".format(x=(i - m) + 1))
             matched = lps[matched - 1]
             total_matches += 1
-    print("Pattern was found in string {matches} time(s).".format(matches=total_matches))
-    print("There is a {:.2f}% hit rate of the pattern in string.".format((total_matches * m) / n * 100))
+    if not ANALYSIS_KMP:
+        print("Pattern was found in string {matches} time(s).".format(matches=total_matches))
+        print("There is a {:.2f}% hit rate of the pattern in string.".format((total_matches * m) / n * 100))
 
 def LPS(pattern):
     m = len(pattern)
