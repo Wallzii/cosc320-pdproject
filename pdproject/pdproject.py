@@ -1,6 +1,7 @@
 # import nltk
 import re
 import os
+import sys
 import configparser
 import matplotlib
 import numpy as np
@@ -13,7 +14,8 @@ config.read('config.ini')
 CORPUS_DIR = config['DEFAULT']['CorpusDirectory']
 PLAG_DIR = config['DEFAULT']['PlagiarizedDirectory']
 VERBOSE = config.getboolean('DEFAULT', 'VerboseMode')
-ANALYSIS_KMP = config.getboolean('DEFAULT', 'RuntimeAnalysis_KMP')
+ENABLE_KMP = config.getboolean('ALGORITHMS', 'Enable_KMP')
+ANALYSIS_KMP = config.getboolean('ANALYSIS', 'RuntimeAnalysis_KMP')
 if VERBOSE:
     print("Verbose output enabled.")
 
@@ -32,6 +34,7 @@ class Document:
         self.filename = filename
         self.paragraphs = []
         self.sentences = []
+        self.raw_text = ""
 
     def add_paragraphs(self, paragraphs: list):
         """Attaches a list of strings into a Document object's paragraphs list."""
@@ -54,7 +57,7 @@ class Document:
             print("Filename of Document:", self.filename)
             print("# of paragraphs: {num}".format(num=len(self.paragraphs)))
             print("# of sentences: {num}".format(num=len(self.sentences)))
-            print("----------------------------------------\n")
+            print("----------------------------------------")
         else:
             print("Document '{file}' contains {num_par} paragraph(s) and {num_sen} sentence(s).".format(file=self.filename, num_par=len(self.paragraphs), num_sen=len(self.sentences)))
 
@@ -93,6 +96,7 @@ class Corpus:
     """
     def __init__(self):
         self.documents = {}
+        self.keys = []
 
     def add_document(self, filename: str, document: Document):
         """Adds a Document object to the documents dictionary of the corpus."""
@@ -108,7 +112,7 @@ class Corpus:
                 print("----------------------------------------")
                 print("# of documents in Corpus: {num}".format(num=len(self.documents)))
                 print("Document keys in Corpus: {keys}".format(keys=[*self.documents]))
-                print("----------------------------------------\n")
+                print("----------------------------------------")
             else:
                 print("Corpus contains {documents} document(s): {keys}".format(documents=len(self.documents), keys=[*self.documents]))
         else:
@@ -117,6 +121,9 @@ class Corpus:
     def get_document(self, filename) -> Document:
         """Returns a Document object from the corpus."""
         return self.documents[filename]
+
+    def get_keys(self) -> list:
+        return self.keys
 
 def split_sentences(string) -> list:
     """
@@ -130,7 +137,7 @@ def split_sentences(string) -> list:
     else:
         return sentences[:-1]
 
-def compile_documents() -> list:
+def compile_corpus_documents() -> list:
     """
     Checks for the existence of .txt files stored within the defined corpus directory and 
     parses those files into Document objects. Each Document object is appended to a list 
@@ -141,16 +148,18 @@ def compile_documents() -> list:
     of the project directory.
 
     Intended Usage:
-    \tdocuments = compile_documents()
+    \tdocuments = compile_corpus_documents()
 
     \tcorpus = compile_corpus(documents)
     """
     documents = []
+    print("\nScanning for documents to add to corpus...")
     for file in os.listdir(CORPUS_DIR):
         if file.lower().endswith(".txt"):
             with open(os.path.join(CORPUS_DIR, file), 'r') as f:
                 doc = Document(file)
                 raw_text = f.read()
+                doc.raw_text = raw_text
                 paragraphs = raw_text.splitlines()
                 paragraphs = list(filter(None, paragraphs))
                 doc.add_paragraphs(paragraphs)
@@ -158,9 +167,16 @@ def compile_documents() -> list:
                 sentences = list(filter(None, sentences))
                 doc.add_sentences(sentences)
                 documents.append(doc)
-    return documents
+        else:
+            print("An invalid file was found and will be ignored: '{file}'".format(file=file))
+    if len(documents) == 0:
+        print("No valid documents were found when scanning directory '{dir}'.".format(dir=os.path.join(CORPUS_DIR)))
+        return False
+    else:
+        return documents
 
-def compile_document():
+def compile_plag_document():
+    print("Scanning for potentially plagiarized document...")
     file = os.listdir(PLAG_DIR)
     if file[0].lower().endswith(".txt"):
         with open(os.path.join(PLAG_DIR, file[0]), 'r') as f:
@@ -175,7 +191,7 @@ def compile_document():
                 return doc
     else:
         print("Invalid file type found: '{dir}'".format(dir=os.path.join(PLAG_DIR, file[0])))
-        print("Directory '{dir}' must contain only one file of '.txt' type.".format(dir=os.path.join(PLAG_DIR)))
+        print("Directory '{dir}' must contain only one file of type '.txt' and no sub-directories.".format(dir=os.path.join(PLAG_DIR)))
         return False
     
 def compile_corpus(documents: list) -> Corpus:
@@ -186,37 +202,66 @@ def compile_corpus(documents: list) -> Corpus:
     held Document objects and their methods.
 
     Intended Usage:
-    \tdocuments = compile_documents()
+    \tdocuments = compile_corpus_documents()
 
     \tcorpus = compile_corpus(documents)
     """
+    print("\nCompiling corpus from set of documents...")
     corpus = Corpus()
     for document in documents:
-        corpus.add_document(document.filename, document)
+        try:
+            corpus.add_document(document.filename, document)
+            corpus.keys.append(document.filename)
+        except TypeError:
+            print("Parameter of add_document() was {type} and must be of type 'Document'.".format(type=type(document)))
+            return False
+        except:
+            return False
     return corpus
 
 if __name__ == '__main__':
-    documents = compile_documents()
-    corpus = compile_corpus(documents)
+    # If analysis mode of any algorithm is enabled, do not conduct plagiarism search (disable analysis mode in 'config.ini'):
+    if not ANALYSIS_KMP:
+        # Get the potentially plagiarized document:
+        plagiarized = compile_plag_document()
+        if plagiarized is False:
+            print("Application closing as there is no document to check for plagiarism. Please place a document of type '.txt' into directory '{dir}' and run the program again.".format(dir=os.path.join(PLAG_DIR)))
+            sys.exit()
+        else:
+            print("Valid document found: '{doc}'".format(doc=plagiarized.filename))
+            plagiarized.info()
 
-    plagiarized = compile_document()
-    # if plagiarized != False:
-    #     print("We have a document of type {type}!".format(type=type(plagiarized)))
-    #     plagiarized.info()
+        # Scan for documents that will populate the corpus:
+        documents = compile_corpus_documents()
+        if documents is False:
+            print("Application closing as there are no documents to construct a corpus. Please place documents of type '.txt' into directory '{dir}' and run the program again.".format(dir=os.path.join(CORPUS_DIR)))
+            sys.exit()
+        else:
+            print("Valid set of documents created.")
 
-    # for key in corpus.documents:
-    #     # corpus.documents[key].info()
-    #     # print(corpus.documents[key].sentences)
-    #     KMP(plagiarized.sentences, corpus.documents[key].sentences)
+        # Construct the corpus from the found documents:
+        corpus = compile_corpus(documents)
+        if corpus is False:
+            print("Application closing as an error was encountered when compiling the corpus.")
+            sys.exit()
+        else:
+            print("A valid corpus has been created.")
+            corpus.info()
 
-    # Examples:
-    # corpus.info() # Display amount of documents in corpus along with their keys.
-    # doc1 = corpus.get_document('test01.txt') # Get a specific document from the corpus.
-    # doc1.info() # Display info for that specific document.
-    # doc1.print_paragraphs() # Show all paragraphs contained in that document.
-    # doc1.print_sentences() # Show all sentences contained in that document.
+        # Conduct KMPSearch on the first sentence of the plagiarized document against the raw text of the first corpus document:
+        if ENABLE_KMP:
+            KMPSearch(plagiarized.sentences[0], corpus.documents[corpus.keys[0]].raw_text)
+        else:
+            print("KMPSearch() has been disabled for plagiarism detection.")
 
-    # Runtime analysis (set RuntimeAnalysis_KMP to True in config.ini):
+        # Examples of info functions on corpus and its documents (only really useful for testing purposes):
+        # corpus.info() # Display amount of documents in corpus along with their keys.
+        # doc1 = corpus.get_document('test01.txt') # Get a specific document from the corpus.
+        # doc1.info() # Display info for that specific document.
+        # doc1.print_paragraphs() # Show all paragraphs contained in that document.
+        # doc1.print_sentences() # Show all sentences contained in that document.
+
+    # Runtime analysis of KMP (set RuntimeAnalysis_KMP to True in 'config.ini'):
     if ANALYSIS_KMP:
         # Plot m < n:
         nValues, tValues = tryItABunchKMP( KMPSearch, startN = 50, endN = 20000, stepSize=50, numTrials=10, patternLength = 10)
@@ -235,3 +280,5 @@ if __name__ == '__main__':
         plt.legend()
         plt.title("KMPSearch Runtimes")
         plt.show()
+
+    print("Plagiarism detection on document '{doc}' has successfully completed.".format(doc=plagiarized.filename))
