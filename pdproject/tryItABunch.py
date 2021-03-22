@@ -54,6 +54,30 @@ def tryItABunchKMP(myFn, startN=10, endN=100, stepSize=10, numTrials=20, pattern
     print("Analysis of {name}(), where m < n, finished!".format(name=myFn.__name__))
     return nValues, tValues
 
+# Analysis specific to KMPSearch (standard n > m), but using the corpus document wrapper function:
+def tryItABunchKMPWrapper(myFn, startN=10, endN=100, stepSize=10, numTrials=20, patternLength = 10, amt_patterns = 25, amt_corpus_docs = 100):
+    nValues = []
+    tValues = []
+    for n in range(startN, endN, stepSize):
+        if n % 250 == 0:
+            print("{name}(), m < n: {n}...".format(name=myFn.__name__,n=n))
+        # run myFn several times and average to get a decent idea.
+        runtime = 0
+        for t in range(numTrials):
+            pattern = ''.join(choice(ascii_uppercase) for i in range(patternLength)) # generate a random string of length listMax --> m
+            # print(pattern)
+            string = ''.join(choice(ascii_uppercase) for i in range(n)) # generate a random string of length list2Max --> n
+            # print(string)
+            start = time.time()
+            myFn(amt_patterns, amt_corpus_docs, pattern, string )
+            end = time.time()
+            runtime += (end - start) * 1000 # measure in milliseconds
+        runtime = runtime/numTrials
+        nValues.append(n)
+        tValues.append(runtime)
+    print("Analysis of {name}(), where m < n, finished!".format(name=myFn.__name__))
+    return nValues, tValues
+
 # Analysis specific to KMPSearch (n = m variant):
 def tryItABunchKMPEqual(myFn, startN=10, endN=100, stepSize=10, numTrials=20):
     nValues = []

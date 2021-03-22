@@ -7,7 +7,7 @@ import matplotlib
 import numpy as np
 import matplotlib.pyplot as plt
 from kmp import KMPSearch
-from tryItABunch import tryItABunch, tryItABunchKMP, tryItABunchKMPEqual, tryItABunchKMPLargePat
+from tryItABunch import tryItABunch, tryItABunchKMP, tryItABunchKMPEqual, tryItABunchKMPLargePat, tryItABunchKMPWrapper
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -220,12 +220,31 @@ def compile_corpus(documents: list) -> Corpus:
             return False
     return corpus
 
+def KMP_wrapper(corpus: Corpus, plagiarized: Document):
+    for corp_doc in corpus.documents:
+        total_hit_rate = 0
+        print("\nKMPSearch() starting...\n---> Potentially plagiarized input: '{plag}'\n---> Corpus document: '{corp}'\n".format(plag=plagiarized.filename, corp=corp_doc))
+        for pattern in plagiarized.sentences:
+            total_hit_rate += KMPSearch(pattern, corpus.documents[corp_doc].raw_text)
+            if pattern is plagiarized.sentences[len(plagiarized.sentences) - 1]:
+                if total_hit_rate == 0:
+                    print("No pattern matches found.")
+                print("\n------------------------------------------------------------")
+                print("Total plagiarism hit rate of '{plag_doc}' in '{corp_doc}': {rate:.2f}%".format(plag_doc=plagiarized.filename, corp_doc=corp_doc, rate=total_hit_rate))
+                hit_rate_analysis(total_hit_rate)
+                print("------------------------------------------------------------")
+
+def KMP_wrapper_analysis(amt_patterns:int, amt_corpus_docs:int, pattern: str, string: str):
+    for i in range(amt_corpus_docs):
+        for j in range(amt_patterns):
+            KMPSearch(pattern, string)
+
 def hit_rate_analysis(rate: int):
-    if rate > 70:
-        print("This document is guaranteed to be plagiarized.")
-    elif rate > 50:
+    # if rate > 20:
+    #     print("This document is guaranteed to be plagiarized.")
+    if rate > 10:
         print("This document has an extremely high plagiarism threshhold and has been flagged for review.")
-    elif rate > 25:
+    elif rate > 5:
         print("It is possible this document is plagiarized, but further inspection is suggested.")
     elif rate == 0:
         print("This document is not plagiarized.")
@@ -274,18 +293,7 @@ if __name__ == '__main__':
             # corpus.documents['key'].sentences = ["",...,""]
             # corpus.documents['key'].paragraphs = ["",...,""]
             # corpus.documents['key'].raw_text = ""
-            for corp_doc in corpus.documents:
-                total_hit_rate = 0
-                print("\nKMPSearch() starting...\n---> Potentially plagiarized input: '{plag}'\n---> Corpus document: '{corp}'\n".format(plag=plagiarized.filename, corp=corp_doc))
-                for pattern in plagiarized.sentences:
-                    total_hit_rate += KMPSearch(pattern, corpus.documents[corp_doc].raw_text)
-                    if pattern is plagiarized.sentences[len(plagiarized.sentences) - 1]:
-                        if total_hit_rate == 0:
-                            print("No pattern matches found.")
-                        print("\n------------------------------------------------------------")
-                        print("Total plagiarism hit rate of '{plag_doc}' in '{corp_doc}': {rate:.2f}%".format(plag_doc=plagiarized.filename, corp_doc=corp_doc, rate=total_hit_rate))
-                        hit_rate_analysis(total_hit_rate)
-                        print("------------------------------------------------------------")
+            KMP_wrapper(corpus, plagiarized)
         else:
             print("KMPSearch() has been disabled for plagiarism detection.")
 
@@ -301,8 +309,11 @@ if __name__ == '__main__':
     # Runtime analysis of KMP (set RuntimeAnalysis_KMP to True in 'config.ini'):
     if ANALYSIS_KMP:
         # Plot m < n:
-        nValues, tValues = tryItABunchKMP( KMPSearch, startN = 50, endN = 20000, stepSize=50, numTrials=10, patternLength = 10)
+        nValues, tValues = tryItABunchKMP( KMPSearch, startN = 50, endN = 10000, stepSize=50, numTrials=10, patternLength = 10)
         plt.plot(nValues, tValues, color="red", label="KMPSearch() m < n")
+
+        nValues, tValues = tryItABunchKMPWrapper( KMP_wrapper_analysis, startN = 50, endN = 5000, stepSize=50, numTrials=1, patternLength = 10, amt_patterns = 25, amt_corpus_docs = 100)
+        plt.plot(nValues, tValues, color="darkred", label="KMP_wrapper(KMPSearch()) m < n, pat=25,corp=100")
 
         # Plot m = n:
         # nValuesEqual, tValuesEqual = tryItABunchKMPEqual( KMPSearch, startN = 50, endN = 50000, stepSize=50, numTrials=10)
