@@ -59,7 +59,7 @@ class Document:
             print("# of sentences: {num}".format(num=len(self.sentences)))
             print("----------------------------------------")
         else:
-            print("Document '{file}' contains {num_par} paragraph(s) and {num_sen} sentence(s).".format(file=self.filename, num_par=len(self.paragraphs), num_sen=len(self.sentences)))
+            print("Document '{file}' contains {num_par} paragraph(s) and {num_sen} sentence(s), and has an overall length of {len} characters.".format(file=self.filename, num_par=len(self.paragraphs), num_sen=len(self.sentences), len=len(self.raw_text)))
 
     def print_paragraphs(self):
         """Prints out all paragraphs contained with a Document object."""
@@ -182,6 +182,7 @@ def compile_plag_document():
         with open(os.path.join(PLAG_DIR, file[0]), 'r') as f:
                 doc = Document(file[0])
                 raw_text = f.read()
+                doc.raw_text = raw_text
                 paragraphs = raw_text.splitlines()
                 paragraphs = list(filter(None, paragraphs))
                 doc.add_paragraphs(paragraphs)
@@ -219,6 +220,18 @@ def compile_corpus(documents: list) -> Corpus:
             return False
     return corpus
 
+def hit_rate_analysis(rate: int):
+    if rate > 70:
+        print("This document is guaranteed to be plagiarized.")
+    elif rate > 50:
+        print("This document has an extremely high plagiarism threshhold and has been flagged for review.")
+    elif rate > 25:
+        print("It is possible this document is plagiarized, but further inspection is suggested.")
+    elif rate == 0:
+        print("This document is not plagiarized.")
+    else:
+        print("It is unlikely that this document is plagiarized.")
+
 if __name__ == '__main__':
     # If analysis mode of any algorithm is enabled, do not conduct plagiarism search (disable analysis mode in 'config.ini'):
     if not ANALYSIS_KMP:
@@ -250,7 +263,29 @@ if __name__ == '__main__':
 
         # Conduct KMPSearch on the first sentence of the plagiarized document against the raw text of the first corpus document:
         if ENABLE_KMP:
-            KMPSearch(plagiarized.sentences[0], corpus.documents[corpus.keys[0]].raw_text)
+            # KMPSearch(pattern: str, string: str)
+
+            # plagiarized.sentences = ["",...,""]
+            # plagiarized.paragraphs = ["",...,""]
+            # plagiarized.raw_text = ""
+
+            # corpus.documents = {['': Document]}
+            # corpus.keys = ["",...,""]
+            # corpus.documents['key'].sentences = ["",...,""]
+            # corpus.documents['key'].paragraphs = ["",...,""]
+            # corpus.documents['key'].raw_text = ""
+            for corp_doc in corpus.documents:
+                total_hit_rate = 0
+                print("\nKMPSearch() starting...\n---> Potentially plagiarized input: '{plag}'\n---> Corpus document: '{corp}'\n".format(plag=plagiarized.filename, corp=corp_doc))
+                for pattern in plagiarized.sentences:
+                    total_hit_rate += KMPSearch(pattern, corpus.documents[corp_doc].raw_text)
+                    if pattern is plagiarized.sentences[len(plagiarized.sentences) - 1]:
+                        if total_hit_rate == 0:
+                            print("No pattern matches found.")
+                        print("\n------------------------------------------------------------")
+                        print("Total plagiarism hit rate of '{plag_doc}' in '{corp_doc}': {rate:.2f}%".format(plag_doc=plagiarized.filename, corp_doc=corp_doc, rate=total_hit_rate))
+                        hit_rate_analysis(total_hit_rate)
+                        print("------------------------------------------------------------")
         else:
             print("KMPSearch() has been disabled for plagiarism detection.")
 
@@ -261,6 +296,8 @@ if __name__ == '__main__':
         # doc1.print_paragraphs() # Show all paragraphs contained in that document.
         # doc1.print_sentences() # Show all sentences contained in that document.
 
+        print("\nPlagiarism detection on document '{doc}' on {corpus} was successfully completed.".format(doc=plagiarized.filename,corpus=corpus.keys))
+
     # Runtime analysis of KMP (set RuntimeAnalysis_KMP to True in 'config.ini'):
     if ANALYSIS_KMP:
         # Plot m < n:
@@ -268,11 +305,11 @@ if __name__ == '__main__':
         plt.plot(nValues, tValues, color="red", label="KMPSearch() m < n")
 
         # Plot m = n:
-        nValuesEqual, tValuesEqual = tryItABunchKMPEqual( KMPSearch, startN = 50, endN = 20000, stepSize=50, numTrials=10)
-        plt.plot(nValuesEqual, tValuesEqual, color="blue", label="KMPSearch() m = n")
+        # nValuesEqual, tValuesEqual = tryItABunchKMPEqual( KMPSearch, startN = 50, endN = 50000, stepSize=50, numTrials=10)
+        # plt.plot(nValuesEqual, tValuesEqual, color="blue", label="KMPSearch() m = n")
 
         # # Plot m > n:
-        # nValuesLargePat, tValuesLargePat = tryItABunchKMPLargePat( KMPSearch, startN = 50, endN = 20000, stepSize=50, numTrials=10, stringLength = 10)
+        # nValuesLargePat, tValuesLargePat = tryItABunchKMPLargePat( KMPSearch, startN = 50, endN = 50000, stepSize=50, numTrials=10, stringLength = 10)
         # plt.plot(nValuesLargePat, tValuesLargePat, color="green", label="KMPSearch() m > n")
 
         plt.xlabel("n")
@@ -280,5 +317,3 @@ if __name__ == '__main__':
         plt.legend()
         plt.title("KMPSearch Runtimes")
         plt.show()
-
-    print("Plagiarism detection on document '{doc}' has successfully completed.".format(doc=plagiarized.filename))
