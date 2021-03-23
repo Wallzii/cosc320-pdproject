@@ -3,11 +3,14 @@ import re
 import os
 import sys
 import configparser
+
 import matplotlib
 import numpy as np
 import matplotlib.pyplot as plt
+
 from kmp import KMPSearch
 from tryItABunch import tryItABunch, tryItABunchKMP, tryItABunchKMPEqual, tryItABunchKMPLargePat, tryItABunchKMPWrapper
+
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -16,8 +19,7 @@ PLAG_DIR = config['DEFAULT']['PlagiarizedDirectory']
 VERBOSE = config.getboolean('DEFAULT', 'VerboseMode')
 ENABLE_KMP = config.getboolean('ALGORITHMS', 'Enable_KMP')
 ANALYSIS_KMP = config.getboolean('ANALYSIS', 'RuntimeAnalysis_KMP')
-if VERBOSE:
-    print("Verbose output enabled.")
+
 
 class Document:
     """
@@ -36,30 +38,38 @@ class Document:
         self.sentences = []
         self.raw_text = ""
 
-    def add_paragraphs(self, paragraphs: list):
-        """Attaches a list of strings into a Document object's paragraphs list."""
+    def parse(self, raw_text: str):
+        """
+        Parses the input string into the Document attributes. Sentences and paragraphs are extracted 
+        from the input string and appended to Document.sentences[] and Document.paragraphs[], respectively. 
+        The input string becomes Document.raw_text.
+        """
+        if type(raw_text) is str:
+            self.raw_text = raw_text
+            paragraphs = raw_text.splitlines()
+            paragraphs = list(filter(None, paragraphs))
+            self.__add_paragraphs(paragraphs)
+            sentences = split_sentences(raw_text)
+            sentences = list(filter(None, sentences))
+            self.__add_sentences(sentences)
+        else:
+            raise TypeError("Parameter of Document.parse() was {type} and must be of type 'str'.".format(type=type(raw_text)))
+
+    def __add_paragraphs(self, paragraphs: list):
         if type(paragraphs) is list:
             self.paragraphs += paragraphs
         else:
-            raise TypeError("Parameter of add_sentences() was {type} and must be of type 'list'.".format(type=type(paragraphs)))
+            raise TypeError("Parameter of Document.add_paragraphs() was {type} and must be of type 'list'.".format(type=type(paragraphs)))
 
-    def add_sentences(self, sentences: list):
-        """Attaches a list of strings into a Document object's sentences list."""
+    def __add_sentences(self, sentences: list):
         if type(sentences) is list:
             self.sentences += sentences
         else:
-            raise TypeError("Parameter of add_sentences() was {type} and must be of type 'list'.".format(type=type(sentences)))
+            raise TypeError("Parameter of Document.add_sentences() was {type} and must be of type 'list'.".format(type=type(sentences)))
 
     def info(self):
         """Outputs the filename for a Document object, along with number of paragraphs and sentences."""
-        if VERBOSE:
-            print("----------------------------------------")
-            print("Filename of Document:", self.filename)
-            print("# of paragraphs: {num}".format(num=len(self.paragraphs)))
-            print("# of sentences: {num}".format(num=len(self.sentences)))
-            print("----------------------------------------")
-        else:
-            print("Document '{file}' contains {num_par} paragraph(s) and {num_sen} sentence(s), and has an overall length of {len} characters.".format(file=self.filename, num_par=len(self.paragraphs), num_sen=len(self.sentences), len=len(self.raw_text)))
+        print("Document '{file}' contains {num_par} paragraph(s) and {num_sen} sentence(s), and has an overall length of {len} characters.".format(file=self.filename, num_par=len(self.paragraphs), num_sen=len(self.sentences), len=len(self.raw_text)))
 
     def print_paragraphs(self):
         """Prints out all paragraphs contained with a Document object."""
@@ -85,6 +95,7 @@ class Document:
         else:
             print("No sentences in '{filename}' to display.".format(filename=self.filename))
 
+
 class Corpus:
     """
     Object used to store a collection of Document objects. Document objects are stored within a 
@@ -92,7 +103,7 @@ class Corpus:
     Document object itself.
 
     Methods:
-    \tadd_document(), info(), get_document().
+    \tadd_document(), info().
     """
     def __init__(self):
         self.documents = {}
@@ -102,28 +113,71 @@ class Corpus:
         """Adds a Document object to the documents dictionary of the corpus."""
         if type(document) is Document:
             self.documents[filename] = document
+            self.keys.append(filename)
         else:
-            raise TypeError("Parameter of add_document() was {type} and must be of type 'Document'.".format(type=type(document)))
+            raise TypeError("Parameter of Corpus.add_document() was {type} and must be of type 'Document'.".format(type=type(document)))
 
     def info(self):
         """Outputs number of documents in the corpus along with their dictionary keys."""
         if len(self.documents) > 0:
-            if VERBOSE:
-                print("----------------------------------------")
-                print("# of documents in Corpus: {num}".format(num=len(self.documents)))
-                print("Document keys in Corpus: {keys}".format(keys=[*self.documents]))
-                print("----------------------------------------")
-            else:
-                print("Corpus contains {documents} document(s): {keys}".format(documents=len(self.documents), keys=[*self.documents]))
+            print("Corpus contains {documents} document(s): {keys}".format(documents=len(self.documents), keys=[*self.documents]))
         else:
             print("No Document keys in Corpus to display.")
 
-    def get_document(self, filename) -> Document:
-        """Returns a Document object from the corpus."""
-        return self.documents[filename]
-
     def get_keys(self) -> list:
         return self.keys
+
+
+class Results:
+    def __init__(self):
+        self.highest_hit = float('inf')
+        self.highest_doc = None
+        self.lowest_hit = float('-inf')
+        self.lowest_doc = None
+        self.scores = []
+        self.num_results = 0
+
+    def add(self, document: Document, hit_rate: float):
+        if self.highest_hit == float('inf'):
+            self.highest_hit = hit_rate
+            self.highest_doc = document
+        elif hit_rate > self.highest_hit:
+            self.highest_hit = hit_rate
+            self.highest_doc = document
+        elif self.lowest_hit == float('-inf'):
+            self.lowest_hit = hit_rate
+            self.lowest_doc = document
+        elif hit_rate < self.lowest_hit:
+            self.lowest_hit = hit_rate
+            self.lowest_doc = document
+        self.scores.append(hit_rate)
+        self.num_results += 1
+
+    def display(self, show_quartiles = False):
+        if self.highest_hit == float('inf'):
+            highest_hit = 0
+            highest_doc = 'N/A'
+        else:
+            highest_hit = self.highest_hit
+            highest_doc = self.highest_doc.filename
+        if self.lowest_hit == float('-inf'):
+            lowest_hit = 0
+            lowest_doc = "N/A"
+        else:
+            lowest_hit = self.lowest_hit
+            lowest_doc = self.lowest_doc.filename
+        print("\n---> Total documents checked: \t{num_results}".format(num_results=self.num_results))
+        print("\n---> Highest hit rate: \t\t\t{hit_h:.2f}%\n---> Associated document: \t\t{doc_h}".format(hit_h=highest_hit, doc_h=highest_doc))
+        print("\n---> Lowest hit rate: \t\t\t{hit_l:.2f}%\n---> Associated document: \t\t{doc_l}".format(hit_l=lowest_hit, doc_l=lowest_doc))
+        if show_quartiles:
+            np_quartiles = np.quantile(self.scores, [0.25,0.5,0.75])
+            quartiles = np_quartiles.tolist()
+            print("\nHit rate statistics:")
+            print("---> 1st-Quartile: \t\t\t\t{median:.2f}%".format(median=quartiles[0]))
+            print("---> Median: \t\t\t\t\t{median:.2f}%".format(median=quartiles[1]))
+            print("---> 3rd-Quartile: \t\t\t\t{median:.2f}%".format(median=quartiles[2]))
+            # print("---> Mean: \t\t\t\t\t\t{median:.2f}%".format(median=np.mean(self.scores)))
+
 
 def split_sentences(string) -> list:
     """
@@ -136,6 +190,7 @@ def split_sentences(string) -> list:
         return sentences
     else:
         return sentences[:-1]
+
 
 def compile_corpus_documents() -> list:
     """
@@ -159,13 +214,7 @@ def compile_corpus_documents() -> list:
             with open(os.path.join(CORPUS_DIR, file), 'r') as f:
                 doc = Document(file)
                 raw_text = f.read()
-                doc.raw_text = raw_text
-                paragraphs = raw_text.splitlines()
-                paragraphs = list(filter(None, paragraphs))
-                doc.add_paragraphs(paragraphs)
-                sentences = split_sentences(raw_text)
-                sentences = list(filter(None, sentences))
-                doc.add_sentences(sentences)
+                doc.parse(raw_text)
                 documents.append(doc)
         else:
             print("An invalid file was found and will be ignored: '{file}'".format(file=file))
@@ -175,6 +224,7 @@ def compile_corpus_documents() -> list:
     else:
         return documents
 
+
 def compile_plag_document():
     print("Scanning for potentially plagiarized document...")
     file = os.listdir(PLAG_DIR)
@@ -182,19 +232,14 @@ def compile_plag_document():
         with open(os.path.join(PLAG_DIR, file[0]), 'r') as f:
                 doc = Document(file[0])
                 raw_text = f.read()
-                doc.raw_text = raw_text
-                paragraphs = raw_text.splitlines()
-                paragraphs = list(filter(None, paragraphs))
-                doc.add_paragraphs(paragraphs)
-                sentences = split_sentences(raw_text)
-                sentences = list(filter(None, sentences))
-                doc.add_sentences(sentences)
+                doc.parse(raw_text)
                 return doc
     else:
         print("Invalid file type found: '{dir}'".format(dir=os.path.join(PLAG_DIR, file[0])))
         print("Directory '{dir}' must contain only one file of type '.txt' and no sub-directories.".format(dir=os.path.join(PLAG_DIR)))
         return False
-    
+
+
 def compile_corpus(documents: list) -> Corpus:
     """
     Compiles a list of Document objects into a Corpus. When this function is called, 
@@ -212,7 +257,6 @@ def compile_corpus(documents: list) -> Corpus:
     for document in documents:
         try:
             corpus.add_document(document.filename, document)
-            corpus.keys.append(document.filename)
         except TypeError:
             print("Parameter of add_document() was {type} and must be of type 'Document'.".format(type=type(document)))
             return False
@@ -220,7 +264,8 @@ def compile_corpus(documents: list) -> Corpus:
             return False
     return corpus
 
-def KMP_wrapper(corpus: Corpus, plagiarized: Document):
+
+def KMP_wrapper(corpus: Corpus, plagiarized: Document, results: Results):
     for corp_doc in corpus.documents:
         total_hit_rate = 0
         print("\nKMPSearch() starting...\n---> Potentially plagiarized input: '{plag}'\n---> Corpus document: '{corp}'\n".format(plag=plagiarized.filename, corp=corp_doc))
@@ -233,25 +278,30 @@ def KMP_wrapper(corpus: Corpus, plagiarized: Document):
                 print("Total plagiarism hit rate of '{plag_doc}' in '{corp_doc}': {rate:.2f}%".format(plag_doc=plagiarized.filename, corp_doc=corp_doc, rate=total_hit_rate))
                 hit_rate_analysis(total_hit_rate)
                 print("------------------------------------------------------------")
+                results.add(corpus.documents[corp_doc], total_hit_rate)
+
 
 def KMP_wrapper_analysis(amt_patterns:int, amt_corpus_docs:int, pattern: str, string: str):
     for i in range(amt_corpus_docs):
         for j in range(amt_patterns):
             KMPSearch(pattern, string)
 
+
 def hit_rate_analysis(rate: int):
-    # if rate > 20:
-    #     print("This document is guaranteed to be plagiarized.")
-    if rate > 10:
+    if rate > 20:
         print("This document has an extremely high plagiarism threshhold and has been flagged for review.")
-    elif rate > 5:
+    elif rate > 10:
         print("It is possible this document is plagiarized, but further inspection is suggested.")
     elif rate == 0:
         print("This document is not plagiarized.")
     else:
         print("It is unlikely that this document is plagiarized.")
 
+
 if __name__ == '__main__':
+    if VERBOSE:
+        print("Verbose output enabled.")
+
     # If analysis mode of any algorithm is enabled, do not conduct plagiarism search (disable analysis mode in 'config.ini'):
     if not ANALYSIS_KMP:
         # Get the potentially plagiarized document:
@@ -280,31 +330,18 @@ if __name__ == '__main__':
             print("A valid corpus has been created.")
             corpus.info()
 
+        # Create empty results object for statistics tracking:
+        results = Results()
+
         # Conduct KMPSearch on the first sentence of the plagiarized document against the raw text of the first corpus document:
         if ENABLE_KMP:
-            # KMPSearch(pattern: str, string: str)
-
-            # plagiarized.sentences = ["",...,""]
-            # plagiarized.paragraphs = ["",...,""]
-            # plagiarized.raw_text = ""
-
-            # corpus.documents = {['': Document]}
-            # corpus.keys = ["",...,""]
-            # corpus.documents['key'].sentences = ["",...,""]
-            # corpus.documents['key'].paragraphs = ["",...,""]
-            # corpus.documents['key'].raw_text = ""
-            KMP_wrapper(corpus, plagiarized)
+            KMP_wrapper(corpus, plagiarized, results)
         else:
             print("KMPSearch() has been disabled for plagiarism detection.")
 
-        # Examples of info functions on corpus and its documents (only really useful for testing purposes):
-        # corpus.info() # Display amount of documents in corpus along with their keys.
-        # doc1 = corpus.get_document('test01.txt') # Get a specific document from the corpus.
-        # doc1.info() # Display info for that specific document.
-        # doc1.print_paragraphs() # Show all paragraphs contained in that document.
-        # doc1.print_sentences() # Show all sentences contained in that document.
+        print("\nPlagiarism detection on document '{doc}' against {corpus} was successfully completed.".format(doc=plagiarized.filename,corpus=corpus.keys))
+        results.display(show_quartiles=False)
 
-        print("\nPlagiarism detection on document '{doc}' on {corpus} was successfully completed.".format(doc=plagiarized.filename,corpus=corpus.keys))
 
     # Runtime analysis of KMP (set RuntimeAnalysis_KMP to True in 'config.ini'):
     if ANALYSIS_KMP:
