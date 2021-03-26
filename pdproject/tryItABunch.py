@@ -2,6 +2,7 @@ import time
 from random import choice
 from string import ascii_uppercase
 
+
 # tryItABunch: runs a function a bunch, and times how long it takes.
 #
 # Input: myFn: a function which takes as input a list of integers
@@ -30,6 +31,7 @@ def tryItABunch(myFn, startN=10, endN=100, stepSize=10, numTrials=20, listMax = 
         tValues.append(runtime)
     return nValues, tValues
 
+
 # Analysis specific to KMPSearch (standard n > m):
 def tryItABunchKMP(myFn, startN=10, endN=100, stepSize=10, numTrials=20, patternLength = 10):
     nValues = []
@@ -53,6 +55,7 @@ def tryItABunchKMP(myFn, startN=10, endN=100, stepSize=10, numTrials=20, pattern
         tValues.append(runtime)
     print("Analysis of {name}(), where m < n, finished!".format(name=myFn.__name__))
     return nValues, tValues
+
 
 # Analysis specific to KMPSearch (standard n > m), but using the corpus document wrapper function:
 def tryItABunchKMPWrapper(myFn, startN=10, endN=100, stepSize=10, numTrials=20, patternLength = 10, amt_patterns = 25, amt_corpus_docs = 100):
@@ -78,6 +81,7 @@ def tryItABunchKMPWrapper(myFn, startN=10, endN=100, stepSize=10, numTrials=20, 
     print("Analysis of {name}(), where m < n, finished!".format(name=myFn.__name__))
     return nValues, tValues
 
+
 # Analysis specific to KMPSearch (n = m variant):
 def tryItABunchKMPEqual(myFn, startN=10, endN=100, stepSize=10, numTrials=20):
     nValues = []
@@ -102,6 +106,7 @@ def tryItABunchKMPEqual(myFn, startN=10, endN=100, stepSize=10, numTrials=20):
     print("Analysis of {name}(), where m = n, finished!".format(name=myFn.__name__))
     return nValues, tValues
 
+
 # Analysis specific to KMPSearch (n < m variant):
 def tryItABunchKMPLargePat(myFn, startN=10, endN=100, stepSize=10, numTrials=20, stringLength = 500):
     nValues = []
@@ -125,7 +130,3 @@ def tryItABunchKMPLargePat(myFn, startN=10, endN=100, stepSize=10, numTrials=20,
         tValues.append(runtime)
     print("Analysis of {name}(), where m > n, finished!".format(name=myFn.__name__))
     return nValues, tValues
-
-# next, you can do:
-# plot(nValues, tValues)
-# or something like that

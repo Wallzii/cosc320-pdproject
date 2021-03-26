@@ -1,9 +1,11 @@
 import configparser
 
+
 config = configparser.ConfigParser()
 config.read('config.ini')
 VERBOSE = config.getboolean('DEFAULT', 'VerboseMode')
 ANALYSIS_KMP = config.getboolean('ANALYSIS', 'RuntimeAnalysis_KMP')
+
 
 def KMPSearch(pattern: str, string: str) -> int:
     m = len(pattern)
@@ -38,6 +40,7 @@ def KMPSearch(pattern: str, string: str) -> int:
             # print(" *** KMPSearch() finished!\n")
         return hit_rate
 
+
 def LPS(pattern):
     m = len(pattern)
     PI = [0] * m
@@ -50,6 +53,7 @@ def LPS(pattern):
             k += 1
         PI[i] = k
     return PI
+
 
 if __name__ == '__main__':
     # KMP test cases:
