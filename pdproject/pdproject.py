@@ -9,12 +9,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from kmp import KMPSearch
-from tryItABunch import tryItABunch, tryItABunchKMP, tryItABunchKMPEqual, tryItABunchKMPLargePat, tryItABunchKMPWrapper
+from tryItABunch import tryItABunch, tryItABunchKMP, tryItABunchKMPEqual, tryItABunchKMPLargePat, tryItABunchKMPWrapper, tryItABunchKMPWrapperEqual
 
 
 config = configparser.ConfigParser()
 config.read('config.ini')
-CORPUS_DIR = config['DEFAULT']['CorpusDirectory']
+CORPUS_DIR = config['DEFAULT']['CorpusDirectoryMultiple']
+CORPUS_DIR_SINGULAR = config['DEFAULT']['CorpusDirectorySingular']
 PLAG_DIR = config['DEFAULT']['PlagiarizedDirectory']
 VERBOSE = config.getboolean('DEFAULT', 'VerboseMode')
 ENABLE_KMP = config.getboolean('ALGORITHMS', 'Enable_KMP')
@@ -61,6 +62,7 @@ class Document:
         else:
             raise TypeError("Parameter of Document.add_paragraphs() was {type} and must be of type 'list'.".format(type=type(paragraphs)))
 
+
     def __add_sentences(self, sentences: list):
         if type(sentences) is list:
             self.sentences += sentences
@@ -71,6 +73,11 @@ class Document:
         """Outputs the filename for a Document object, along with number of paragraphs and sentences."""
         print("Document '{file}' contains {num_par} paragraph(s) and {num_sen} sentence(s), and has an overall length of {len} characters.".format(file=self.filename, num_par=len(self.paragraphs), num_sen=len(self.sentences), len=len(self.raw_text)))
 
+    
+    def number_paragraphs(self) -> int:
+        return len(self.paragraphs)
+
+    
     def print_paragraphs(self):
         """Prints out all paragraphs contained with a Document object."""
         if len(self.paragraphs) > 0:
@@ -138,21 +145,21 @@ class Results:
         self.documents = []
         self.num_results = 0
 
-    def add(self, document: Document, hit_rate: float):
+    def add(self, document: Document, hit_rate: float): #97 -> 1.2
         if self.highest_hit == float('inf'):
             self.highest_hit = hit_rate
             self.highest_doc = document
         elif hit_rate > self.highest_hit:
             self.highest_hit = hit_rate
             self.highest_doc = document
-        elif self.lowest_hit == float('-inf'):
+        elif hit_rate != 0 and self.lowest_hit == float('-inf'):
             self.lowest_hit = hit_rate
             self.lowest_doc = document
-        elif hit_rate < self.lowest_hit:
+        elif hit_rate != 0 and hit_rate < self.lowest_hit:
             self.lowest_hit = hit_rate
             self.lowest_doc = document
         self.scores.append(hit_rate)
-        self.documents.append(document.filename)
+        self.documents.append(document.filename) # 10,000 chars/doc -> 1,000,000 docs -> 10,000,000 * 10,000 -> 100,000,000,000
         self.num_results += 1
 
     def display(self, show_quartiles = False):
@@ -176,7 +183,10 @@ class Results:
         else:
             print("\nNo results to display.")
         for i in range(len(self.scores)):
-            print("\t{filename}: {hits:.2f}%".format(filename=self.documents[i], hits=self.scores[i]))
+            if self.scores[i] != 0:
+                print("\t{filename}: {hits:.2f}%".format(filename=self.documents[i], hits=self.scores[i]))
+        if len(self.scores) != 0: 
+            print("\nFiles without hits have been excluded in the results above.")
         if show_quartiles:
             np_quartiles = np.quantile(self.scores, [0.25,0.5,0.75])
             quartiles = np_quartiles.tolist()
@@ -238,10 +248,39 @@ def compile_plag_document():
     file = os.listdir(PLAG_DIR)
     if file[0].lower().endswith(".txt"):
         with open(os.path.join(PLAG_DIR, file[0]), 'r') as f:
-                doc = Document(file[0])
-                raw_text = f.read()
-                doc.parse(raw_text)
-                return doc
+            doc = Document(file[0])
+            raw_text = f.read()
+            doc.parse(raw_text)
+            return doc
+    else:
+        print("Invalid file type found: '{dir}'".format(dir=os.path.join(PLAG_DIR, file[0])))
+        print("Directory '{dir}' must contain only one file of type '.txt' and no sub-directories.".format(dir=os.path.join(PLAG_DIR)))
+        return False
+
+
+def extract_corpus_files() -> list:
+    documents = []
+    file = os.listdir(CORPUS_DIR_SINGULAR)
+    if file[0].lower().endswith(".txt"):
+        with open(os.path.join(CORPUS_DIR_SINGULAR, file[0]), 'r') as f:
+            doc = Document(file[0])
+            raw_text = f.read()
+            if type(raw_text) is str:
+                doc.raw_text = raw_text
+                essay = raw_text.splitlines()
+                essay = list(filter(None, essay))
+                doc._Document__add_paragraphs(essay)
+            else:
+                raise TypeError("Parameter of Document.parse() was {type} and must be of type 'str'.".format(type=type(raw_text)))
+            for i in range(doc.number_paragraphs()):
+                filename = "input{x}".format(x=i)
+                filename += ".txt"
+                # print(filename)
+                temp_doc = Document(filename)
+                raw_text = doc.paragraphs[i]
+                temp_doc.parse(raw_text)
+                documents.append(temp_doc)
+        return documents
     else:
         print("Invalid file type found: '{dir}'".format(dir=os.path.join(PLAG_DIR, file[0])))
         print("Directory '{dir}' must contain only one file of type '.txt' and no sub-directories.".format(dir=os.path.join(PLAG_DIR)))
@@ -274,9 +313,14 @@ def compile_corpus(documents: list) -> Corpus:
 
 
 def KMP_wrapper(corpus: Corpus, plagiarized: Document, results: Results):
-    for corp_doc in corpus.documents:
+    # corpus[str_1, str_2, ..., str_s] where str_1...s = some document's raw text
+    # plag[pat_1, pat_2, ..., pat_p] where pat_1...p = some document's individual component sentences
+    # kmp_wrapper() = O(p*s)
+    # kmp() = O(m + n)
+    # for corp_doc, i in corpus.documents:
+    for i, corp_doc in enumerate(corpus.documents):
         total_hit_rate = 0
-        print("\nKMPSearch() starting...\n---> Potentially plagiarized input: '{plag}'\n---> Corpus document: '{corp}'\n".format(plag=plagiarized.filename, corp=corp_doc))
+        print("\nKMPSearch() starting...\n---> Potentially plagiarized input: '{plag}'\n---> Corpus document: '{corp}' (document {x} of {x_len})\n".format(plag=plagiarized.filename, corp=corp_doc, x=i, x_len=len(corpus.documents)))
         for pattern in plagiarized.sentences:
             total_hit_rate += KMPSearch(pattern, corpus.documents[corp_doc].raw_text)
             if pattern is plagiarized.sentences[len(plagiarized.sentences) - 1]:
@@ -291,7 +335,9 @@ def KMP_wrapper(corpus: Corpus, plagiarized: Document, results: Results):
 
 def KMP_wrapper_analysis(amt_patterns:int, amt_corpus_docs:int, pattern: str, string: str):
     for i in range(amt_corpus_docs):
+        # print("i = {i}".format(i=i))
         for j in range(amt_patterns):
+            # print("j = {j}".format(j=j))
             KMPSearch(pattern, string)
 
 
@@ -304,6 +350,12 @@ def hit_rate_analysis(rate: int):
         print("This document is not plagiarized.")
     else:
         print("It is unlikely that this document is plagiarized.")
+
+
+def square_n(n:list):
+    for i in range(len(n)):
+        for i in range(len(n)):
+            True
 
 
 if __name__ == '__main__':
@@ -321,13 +373,16 @@ if __name__ == '__main__':
             print("Valid document found: '{doc}'".format(doc=plagiarized.filename))
             plagiarized.info()
 
-        # Scan for documents that will populate the corpus:
-        documents = compile_corpus_documents()
-        if documents is False:
-            print("Application closing as there are no documents to construct a corpus. Please place documents of type '.txt' into directory '{dir}' and run the program again.".format(dir=os.path.join(CORPUS_DIR)))
-            sys.exit()
-        else:
-            print("Valid set of documents created.")
+        # Scan for multiple input documents to populate the corpus (CorpusDirectoryMultiple in config.ini):
+        # documents = compile_corpus_documents()
+        # if documents is False:
+        #     print("Application closing as there are no documents to construct a corpus. Please place documents of type '.txt' into directory '{dir}' and run the program again.".format(dir=os.path.join(CORPUS_DIR)))
+        #     sys.exit()
+        # else:
+        #     print("Valid set of documents created.")
+
+        # Scan single input document to populare the corpus (CorpusDirectorySingular in config.ini):
+        documents = extract_corpus_files()
 
         # Construct the corpus from the found documents:
         corpus = compile_corpus(documents)
@@ -354,18 +409,31 @@ if __name__ == '__main__':
     # Runtime analysis of KMP (set RuntimeAnalysis_KMP to True in 'config.ini'):
     if ANALYSIS_KMP:
         # Plot m < n:
-        nValues, tValues = tryItABunchKMP( KMPSearch, startN = 50, endN = 10000, stepSize=50, numTrials=10, patternLength = 10)
-        plt.plot(nValues, tValues, color="red", label="KMPSearch() m < n")
+        nValues, tValues = tryItABunch(square_n, startN=10, endN=1000, stepSize=10, numTrials=20, listMax = 10)
+        plt.plot(nValues, tValues, color="blue", label="square_n()")
 
-        nValues, tValues = tryItABunchKMPWrapper( KMP_wrapper_analysis, startN = 50, endN = 5000, stepSize=50, numTrials=1, patternLength = 10, amt_patterns = 25, amt_corpus_docs = 100)
-        plt.plot(nValues, tValues, color="darkred", label="KMP_wrapper(KMPSearch()) m < n, pat=25,corp=100")
+        # nValues, tValues = tryItABunchKMP( KMPSearch, startN = 50, endN = 20000, stepSize=50, numTrials=10, patternLength = 10)
+        # plt.plot(nValues, tValues, color="red", label="KMPSearch() m < n")
+
+        # nValues, tValues = tryItABunchKMPWrapper( KMP_wrapper_analysis, startN = 1, endN = 2, stepSize=1, numTrials=1, patternLength = 10, amt_patterns = 25, amt_corpus_docs = 100)
+        # plt.plot(nValues, tValues, color="darkred", label="KMP_wrapper(KMPSearch()) m < n, pat=25,corp=100")
+
+        nValuesWrap, tValuesWrap = tryItABunchKMPWrapper( KMP_wrapper_analysis, startN = 50, endN = 1000, stepSize=50, numTrials=1, patternLength = 10)
+        plt.plot(nValuesWrap, tValuesWrap, color="red", label="KMP_wrapper(KMPSearch()) m < n, P.length = n ,S.len = n, m = 10, s.len = n")
+        nValuesWrapLessPatterns, tValuesWrapLessPatterns = tryItABunchKMPWrapper( KMP_wrapper_analysis, startN = 50, endN = 1000, stepSize=50, numTrials=1, patternLength = 10, amtPatternsSmaller = True)
+        plt.plot(nValuesWrapLessPatterns, tValuesWrapLessPatterns, color="yellow", label="KMP_wrapper(KMPSearch()) m < n, P.length = n / 2 ,S.len = n, m = 10, s.len = n")
+        nValuesWrapLessPatterns, tValuesWrapLessPatterns = tryItABunchKMPWrapper( KMP_wrapper_analysis, startN = 50, endN = 1000, stepSize=50, numTrials=1, patternLength = 10, amtPatternsLarger = True)
+        plt.plot(nValuesWrapLessPatterns, tValuesWrapLessPatterns, color="green", label="KMP_wrapper(KMPSearch()) m < n, P.length = n * 2 ,S.len = n, m = 10, s.len = n")
 
         # Plot m = n:
-        # nValuesEqual, tValuesEqual = tryItABunchKMPEqual( KMPSearch, startN = 50, endN = 50000, stepSize=50, numTrials=10)
+        # nValuesEqual, tValuesEqual = tryItABunchKMPEqual( KMPSearch, startN = 50, endN = 20000, stepSize=50, numTrials=10)
         # plt.plot(nValuesEqual, tValuesEqual, color="blue", label="KMPSearch() m = n")
 
+        # nValuesEqual, tValuesEqual = tryItABunchKMPWrapperEqual( KMP_wrapper_analysis, startN = 50, endN = 1000, stepSize=50, numTrials=1, amt_patterns = 100, amt_corpus_docs = 100)
+        # plt.plot(nValuesEqual, tValuesEqual, color="blue", label="KMP_wrapper() m = n")
+
         # # Plot m > n:
-        # nValuesLargePat, tValuesLargePat = tryItABunchKMPLargePat( KMPSearch, startN = 50, endN = 50000, stepSize=50, numTrials=10, stringLength = 10)
+        # nValuesLargePat, tValuesLargePat = tryItABunchKMPLargePat( KMPSearch, startN = 50, endN = 20000, stepSize=50, numTrials=10, stringLength = 10)
         # plt.plot(nValuesLargePat, tValuesLargePat, color="green", label="KMPSearch() m > n")
 
         plt.xlabel("n")

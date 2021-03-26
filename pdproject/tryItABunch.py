@@ -18,6 +18,8 @@ def tryItABunch(myFn, startN=10, endN=100, stepSize=10, numTrials=20, listMax = 
     nValues = []
     tValues = []
     for n in range(startN, endN, stepSize):
+        if n % 250 == 0:
+            print("{name}(), m < n: {n}...".format(name=myFn.__name__,n=n))
         # run myFn several times and average to get a decent idea.
         runtime = 0
         for t in range(numTrials):
@@ -58,11 +60,36 @@ def tryItABunchKMP(myFn, startN=10, endN=100, stepSize=10, numTrials=20, pattern
 
 
 # Analysis specific to KMPSearch (standard n > m), but using the corpus document wrapper function:
-def tryItABunchKMPWrapper(myFn, startN=10, endN=100, stepSize=10, numTrials=20, patternLength = 10, amt_patterns = 25, amt_corpus_docs = 100):
+# def tryItABunchKMPWrapper(myFn, startN=10, endN=100, stepSize=10, numTrials=20, patternLength = 10, amt_patterns = 25, amt_corpus_docs = 100):
+#     nValues = []
+#     tValues = []
+#     for n in range(startN, endN, stepSize):
+#         if n % 250 == 0:
+#             print("{name}(), m < n: {n}...".format(name=myFn.__name__,n=n))
+#         # run myFn several times and average to get a decent idea.
+#         runtime = 0
+#         for t in range(numTrials):
+#             pattern = ''.join(choice(ascii_uppercase) for i in range(patternLength)) # generate a random string of length listMax --> m
+#             # print(pattern)
+#             string = ''.join(choice(ascii_uppercase) for i in range(n)) # generate a random string of length list2Max --> n
+#             # print(string)
+#             # lst = [ choice(range(listMax)) for i in range(n) ] # generate a random list of length n
+#             start = time.time()
+#             myFn(amt_patterns, amt_corpus_docs, pattern, string )
+#             end = time.time()
+#             runtime += (end - start) * 1000 # measure in milliseconds
+#         runtime = runtime/numTrials
+#         nValues.append(n)
+#         tValues.append(runtime)
+#     print("Analysis of {name}(), where m < n, finished!".format(name=myFn.__name__))
+#     return nValues, tValues
+
+
+def tryItABunchKMPWrapper(myFn, startN=10, endN=100, stepSize=10, numTrials=20, patternLength = 10, amtPatternsSmaller = False, amtPatternsLarger = False):
     nValues = []
     tValues = []
     for n in range(startN, endN, stepSize):
-        if n % 250 == 0:
+        if n % 50 == 0:
             print("{name}(), m < n: {n}...".format(name=myFn.__name__,n=n))
         # run myFn several times and average to get a decent idea.
         runtime = 0
@@ -71,8 +98,16 @@ def tryItABunchKMPWrapper(myFn, startN=10, endN=100, stepSize=10, numTrials=20, 
             # print(pattern)
             string = ''.join(choice(ascii_uppercase) for i in range(n)) # generate a random string of length list2Max --> n
             # print(string)
+            # lst = [ choice(range(listMax)) for i in range(n) ] # generate a random list of length n
+            if amtPatternsSmaller is True:
+                amt_patters = (int)(n / 2)
+            elif amtPatternsLarger is True:
+                amt_patters = (int)(n * 2)
+            else:
+                amt_patters = n
+            amt_corpus_docs = n
             start = time.time()
-            myFn(amt_patterns, amt_corpus_docs, pattern, string )
+            myFn(amt_patters, amt_corpus_docs, pattern, string)
             end = time.time()
             runtime += (end - start) * 1000 # measure in milliseconds
         runtime = runtime/numTrials
@@ -104,6 +139,30 @@ def tryItABunchKMPEqual(myFn, startN=10, endN=100, stepSize=10, numTrials=20):
         nValues.append(n)
         tValues.append(runtime)
     print("Analysis of {name}(), where m = n, finished!".format(name=myFn.__name__))
+    return nValues, tValues
+
+
+def tryItABunchKMPWrapperEqual(myFn, startN=10, endN=100, stepSize=10, numTrials=20, amt_patterns = 25, amt_corpus_docs = 100):
+    nValues = []
+    tValues = []
+    for n in range(startN, endN, stepSize):
+        if n % 250 == 0:
+            print("{name}(), m < n: {n}...".format(name=myFn.__name__,n=n))
+        # run myFn several times and average to get a decent idea.
+        runtime = 0
+        for t in range(numTrials):
+            pattern = ''.join(choice(ascii_uppercase) for i in range(n)) # generate a random string of length listMax --> m
+            # print(pattern)
+            string = ''.join(choice(ascii_uppercase) for i in range(n)) # generate a random string of length list2Max --> n
+            # print(string)
+            start = time.time()
+            myFn(amt_patterns, amt_corpus_docs, pattern, string )
+            end = time.time()
+            runtime += (end - start) * 1000 # measure in milliseconds
+        runtime = runtime/numTrials
+        nValues.append(n)
+        tValues.append(runtime)
+    print("Analysis of {name}(), where m < n, finished!".format(name=myFn.__name__))
     return nValues, tValues
 
 
