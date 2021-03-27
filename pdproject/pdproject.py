@@ -147,7 +147,7 @@ class Results:
         self.documents = []
         self.num_results = 0
 
-    def add(self, document: Document, hit_rate: float): #97 -> 1.2
+    def add(self, document: Document, hit_rate: float):
         if self.highest_hit == float('inf'):
             self.highest_hit = hit_rate
             self.highest_doc = document
@@ -161,7 +161,7 @@ class Results:
             self.lowest_hit = hit_rate
             self.lowest_doc = document
         self.scores.append(hit_rate)
-        self.documents.append(document.filename) # 10,000 chars/doc -> 1,000,000 docs -> 10,000,000 * 10,000 -> 100,000,000,000
+        self.documents.append(document.filename)
         self.num_results += 1
 
     def display(self, show_quartiles = False):
@@ -277,7 +277,6 @@ def extract_corpus_files() -> list:
             for i in range(doc.number_paragraphs()):
                 filename = "input{x}".format(x=i)
                 filename += ".txt"
-                # print(filename)
                 temp_doc = Document(filename)
                 raw_text = doc.paragraphs[i]
                 temp_doc.parse(raw_text)
@@ -315,23 +314,20 @@ def compile_corpus(documents: list) -> Corpus:
 
 
 def KMP_wrapper(corpus: Corpus, plagiarized: Document, results: Results):
-    # corpus[str_1, str_2, ..., str_s] where str_1...s = some document's raw text
-    # plag[pat_1, pat_2, ..., pat_p] where pat_1...p = some document's individual component sentences
-    # kmp_wrapper() = O(p*s)
-    # kmp() = O(m + n)
-    # for corp_doc, i in corpus.documents:
     for i, corp_doc in enumerate(corpus.documents):
         total_hit_rate = 0
-        print("\nKMPSearch() starting...\n---> Potentially plagiarized input: '{plag}'\n---> Corpus document: '{corp}' (document {x} of {x_len})\n".format(plag=plagiarized.filename, corp=corp_doc, x=i, x_len=len(corpus.documents)))
+        if VERBOSE: print()
+        print("KMPSearch() starting...\n---> Potentially plagiarized input: '{plag}'\n---> Corpus document: '{corp}' (document {x} of {x_len})\n".format(plag=plagiarized.filename, corp=corp_doc, x=i, x_len=len(corpus.documents)))
         for pattern in plagiarized.sentences:
             total_hit_rate += KMPSearch(pattern, corpus.documents[corp_doc].raw_text)
             if pattern is plagiarized.sentences[len(plagiarized.sentences) - 1]:
-                if total_hit_rate == 0:
-                    print("No pattern matches found.")
-                print("\n------------------------------------------------------------")
-                print("Total plagiarism hit rate of '{plag_doc}' in '{corp_doc}': {rate:.2f}%".format(plag_doc=plagiarized.filename, corp_doc=corp_doc, rate=total_hit_rate))
-                hit_rate_analysis(total_hit_rate)
-                print("------------------------------------------------------------")
+                if VERBOSE:
+                    if total_hit_rate == 0:
+                        print("No pattern matches found.")
+                    print("\n------------------------------------------------------------")
+                    print("Total plagiarism hit rate of '{plag_doc}' in '{corp_doc}': {rate:.2f}%".format(plag_doc=plagiarized.filename, corp_doc=corp_doc, rate=total_hit_rate))
+                    hit_rate_analysis(total_hit_rate)
+                    print("------------------------------------------------------------")
                 results.add(corpus.documents[corp_doc], total_hit_rate)
 
 
