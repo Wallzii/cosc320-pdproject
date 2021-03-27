@@ -9,6 +9,11 @@ Plagiarism detection problem for COSC 320. Use and analysis of KMP, LCSS, and Ra
 ## Known Issues:
 - ~~Multiple punctuations at the end of sentences parsed by split_sentences() create empty sentences equal to the amount of punctuations after the first.~~
 
+## Installation:
+Currently this project is not setup with a virtual environment and relies on all utilized packages to be installed globally. Current packages that are required for this project to run:
+- matplotlib
+- numpy
+
 ## Example Output (limited dataset, non-verbose mode):
 ```
 Scanning for potentially plagiarized document...
