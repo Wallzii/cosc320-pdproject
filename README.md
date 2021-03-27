@@ -9,58 +9,230 @@ Plagiarism detection problem for COSC 320. Use and analysis of KMP, LCSS, and Ra
 ## Known Issues:
 - ~~Multiple punctuations at the end of sentences parsed by split_sentences() create empty sentences equal to the amount of punctuations after the first.~~
 
-## Example Output (Verbose):
+## Example Output (limited dataset, non-verbose mode):
+```
+Scanning for potentially plagiarized document...
+Valid document found: 'plag.txt'
+Document 'plag.txt' contains 7 paragraph(s) and 26 sentence(s), and has an overall length of 2394 characters.
+
+Scanning for documents to add to corpus...
+Valid set of documents created.
+
+Compiling corpus from set of documents...
+A valid corpus has been created.
+Corpus contains 4 document(s): ['test01.txt', 'test02.txt', 'test03.txt', 'test04.txt']
+KMPSearch() starting...
+---> Potentially plagiarized input: 'plag.txt'
+---> Corpus document: 'test01.txt' (document 0 of 4)
+
+KMPSearch() starting...
+---> Potentially plagiarized input: 'plag.txt'
+---> Corpus document: 'test02.txt' (document 1 of 4)
+
+KMPSearch() starting...
+---> Potentially plagiarized input: 'plag.txt'
+---> Corpus document: 'test03.txt' (document 2 of 4)
+
+KMPSearch() starting...
+---> Potentially plagiarized input: 'plag.txt'
+---> Corpus document: 'test04.txt' (document 3 of 4)
+
+
+Plagiarism detection on document 'plag.txt' against ['test01.txt', 'test02.txt', 'test03.txt', 'test04.txt'] was successfully completed.
+
+---> Total documents checked: 	4
+
+---> Highest hit rate: 			97.75%
+---> Associated document: 		test01.txt
+
+---> Lowest hit rate: 			4.98%
+---> Associated document: 		test03.txt
+
+All results:
+	test01.txt: 97.75%
+	test03.txt: 4.98%
+	test04.txt: 23.71%
+
+Files without hits have been excluded in the results above.
+```
+
+## Example Output (limited dataset, verbose mode):
 ```
 Verbose output enabled.
-----------------------------------------
-# of documents in Corpus: 2
-Document keys in Corpus: ['test01.txt', 'test02.txt']
-----------------------------------------
+Scanning for potentially plagiarized document...
+Valid document found: 'plag.txt'
+Document 'plag.txt' contains 7 paragraph(s) and 26 sentence(s), and has an overall length of 2394 characters.
 
-----------------------------------------
-Filename of Document: test01.txt
-# of paragraphs: 6
-# of sentences: 24
-----------------------------------------
+Scanning for documents to add to corpus...
+Valid set of documents created.
 
-Paragraphs in Document 'test01.txt':
-test01.txt->paragraphs[0]: I believe that computers have a positive effect on people. They help you stay in touch with family in a couple different ways they excercise your mind and hands and help you learn and make things easier.
-test01.txt->paragraphs[1]: Computer's help you keep in touch with people. Say you live in @LOCATION1 and you miss your @CAPS1. You can just send an e-mail and talk all you want. If you don't just want to limit it to words you can add pictures so they can see how much you've grown or if you are well. Even if you're just e-mailing someone down the block it is just as effective as getting up and walking over there. You can also use a computer to make a scrap book card or slide show to show how much you love the person you give them to.
-test01.txt->paragraphs[2]: Computers @MONTH1 not excercise you whole body but it excersises you mind and hands. You could play solitaire on the computer and come away @PERCENT1 smarter than before. You can play other games of strategy like checkers and chess while still sitting at home being comfortable.
-test01.txt->paragraphs[3]: Your hands always play a big role while you're on the computer. They need to move the mouse and press the keys on a keyboard. Your hands learn all the keys from memorization. It's like the computer's teaching handi-coordination and studying habit for the future.
-test01.txt->paragraphs[4]: Computers make human lives easier. Not only do they help kids turn in a nice neatly printed piece or paper for home work but they also help the average person. Teachers use it to keep peoples grades in order and others use it to write reports for various jobs. The @CAPS2 probably uses one to write a speech or to just keep his day in order. Computers make it easier to learn certain topics like the @LOCATION2 history. You can type something into a searcher site and have ton's of websites for one person with, who knows how much imformation. Instead of flipping through all the pages in a dictionary you can look for an online dictionary, type in the word and you have the definition.
-test01.txt->paragraphs[5]: Computers have positive effects on people because they help you keep close to your family, they challenge your mind to be greater and excercise your hands and they make life easier for kids and the average person. This is why, I think computers have good effects on society.
-Sentences in Document 'test01.txt':
-test01.txt->sentence[0]: I believe that computers have a positive effect on people
-test01.txt->sentence[1]: They help you stay in touch with family in a couple different ways they excercise your mind and hands and help you learn and make things easier
-test01.txt->sentence[2]: Computer's help you keep in touch with people
-test01.txt->sentence[3]: Say you live in @LOCATION1 and you miss your @CAPS1
-test01.txt->sentence[4]: You can just send an e-mail and talk all you want
-test01.txt->sentence[5]: If you don't just want to limit it to words you can add pictures so they can see how much you've grown or if you are well
-test01.txt->sentence[6]: Even if you're just e-mailing someone down the block it is just as effective as getting up and walking over there
-test01.txt->sentence[7]: You can also use a computer to make a scrap book card or slide show to show how much you love the person you give them to
-test01.txt->sentence[8]: Computers @MONTH1 not excercise you whole body but it excersises you mind and hands
-test01.txt->sentence[9]: You could play solitaire on the computer and come away @PERCENT1 smarter than before
-test01.txt->sentence[10]: You can play other games of strategy like checkers and chess while still sitting at home being comfortable
-test01.txt->sentence[11]: Your hands always play a big role while you're on the computer
-test01.txt->sentence[12]: They need to move the mouse and press the keys on a keyboard
-test01.txt->sentence[13]: Your hands learn all the keys from memorization
-test01.txt->sentence[14]: It's like the computer's teaching handi-coordination and studying habit for the future
-test01.txt->sentence[15]: Computers make human lives easier
-test01.txt->sentence[16]: Not only do they help kids turn in a nice neatly printed piece or paper for home work but they also help the average person
-test01.txt->sentence[17]: Teachers use it to keep peoples grades in order and others use it to write reports for various jobs
-test01.txt->sentence[18]: The @CAPS2 probably uses one to write a speech or to just keep his day in order
-test01.txt->sentence[19]: Computers make it easier to learn certain topics like the @LOCATION2 history
-test01.txt->sentence[20]: You can type something into a searcher site and have ton's of websites for one person with, who knows how much imformation
-test01.txt->sentence[21]: Instead of flipping through all the pages in a dictionary you can look for an online dictionary, type in the word and you have the definition
-test01.txt->sentence[22]: Computers have positive effects on people because they help you keep close to your family, they challenge your mind to be greater and excercise your hands and they make life easier for kids and the average person
-test01.txt->sentence[23]: This is why, I think computers have good effects on society
-```
+Compiling corpus from set of documents...
+A valid corpus has been created.
+Corpus contains 4 document(s): ['test01.txt', 'test02.txt', 'test03.txt', 'test04.txt']
 
-## Example Output (Non-Verbose):
-```
-Corpus contains 2 document(s): ['test01.txt', 'test02.txt']
-Document 'test01.txt' contains 6 paragraph(s) and 24 sentence(s).
-Paragraphs in 'test01.txt': ['I believe that computers have a positive effect on people. They help you stay in touch with family in a couple different ways they excercise your mind and hands and help you learn and make things easier.', "Computer's help you keep in touch with people. Say you live in @LOCATION1 and you miss your @CAPS1. You can just send an e-mail and talk all you want. If you don't just want to limit it to words you can add pictures so they can see how much you've grown or if you are well. Even if you're just e-mailing someone down the block it is just as effective as getting up and walking over there. You can also use a computer to make a scrap book card or slide show to show how much you love the person you give them to.", 'Computers @MONTH1 not excercise you whole body but it excersises you mind and hands. You could play solitaire on the computer and come away @PERCENT1 smarter than before. You can play other games of strategy like checkers and chess while still sitting at home being comfortable.', "Your hands always play a big role while you're on the computer. They need to move the mouse and press the keys on a keyboard. Your hands learn all the keys from memorization. It's like the computer's teaching handi-coordination and studying habit for the future.", "Computers make human lives easier. Not only do they help kids turn in a nice neatly printed piece or paper for home work but they also help the average person. Teachers use it to keep peoples grades in order and others use it to write reports for various jobs. The @CAPS2 probably uses one to write a speech or to just keep his day in order. Computers make it easier to learn certain topics like the @LOCATION2 history. You can type something into a searcher site and have ton's of websites for one person with, who knows how much imformation. Instead of flipping through all the pages in a dictionary you can look for an online dictionary, type in the word and you have the definition.", 'Computers have positive effects on people because they help you keep close to your family, they challenge your mind to be greater and excercise your hands and they make life easier for kids and the average person. This is why, I think computers have good effects on society.']
-Sentences in 'test01.txt': ['I believe that computers have a positive effect on people', 'They help you stay in touch with family in a couple different ways they excercise your mind and hands and help you learn and make things easier', "Computer's help you keep in touch with people", 'Say you live in @LOCATION1 and you miss your @CAPS1', 'You can just send an e-mail and talk all you want', "If you don't just want to limit it to words you can add pictures so they can see how much you've grown or if you are well", "Even if you're just e-mailing someone down the block it is just as effective as getting up and walking over there", 'You can also use a computer to make a scrap book card or slide show to show how much you love the person you give them to', 'Computers @MONTH1 not excercise you whole body but it excersises you mind and hands', 'You could play solitaire on the computer and come away @PERCENT1 smarter than before', 'You can play other games of strategy like checkers and chess while still sitting at home being comfortable', "Your hands always play a big role while you're on the computer", 'They need to move the mouse and press the keys on a keyboard', 'Your hands learn all the keys from memorization', "It's like the computer's teaching handi-coordination and studying habit for the future", 'Computers make human lives easier', 'Not only do they help kids turn in a nice neatly printed piece or paper for home work but they also help the average person', 'Teachers use it to keep peoples grades in order and others use it to write reports for various jobs', 'The @CAPS2 probably uses one to write a speech or to just keep his day in order', 'Computers make it easier to learn certain topics like the @LOCATION2 history', "You can type something into a searcher site and have ton's of websites for one person with, who knows how much imformation", 'Instead of flipping through all the pages in a dictionary you can look for an online dictionary, type in the word and you have the definition', 'Computers have positive effects on people because they help you keep close to your family, they challenge your mind to be greater and excercise your hands and they make life easier for kids and the average person', 'This is why, I think computers have good effects on society']
+KMPSearch() starting...
+---> Potentially plagiarized input: 'plag.txt'
+---> Corpus document: 'test01.txt' (document 0 of 4)
+
+Pattern occurs in string at index 0.
+Pattern was found in string 1 time(s).
+There is a 2.57% hit rate of the pattern in string.
+Pattern occurs in string at index 59.
+Pattern was found in string 1 time(s).
+There is a 6.44% hit rate of the pattern in string.
+Pattern occurs in string at index 207.
+Pattern was found in string 1 time(s).
+There is a 2.03% hit rate of the pattern in string.
+Pattern occurs in string at index 254.
+Pattern was found in string 1 time(s).
+There is a 2.30% hit rate of the pattern in string.
+Pattern occurs in string at index 307.
+Pattern was found in string 1 time(s).
+There is a 2.21% hit rate of the pattern in string.
+Pattern occurs in string at index 358.
+Pattern was found in string 1 time(s).
+There is a 5.45% hit rate of the pattern in string.
+Pattern occurs in string at index 481.
+Pattern was found in string 1 time(s).
+There is a 5.09% hit rate of the pattern in string.
+Pattern occurs in string at index 596.
+Pattern was found in string 1 time(s).
+There is a 5.45% hit rate of the pattern in string.
+Pattern occurs in string at index 719.
+Pattern was found in string 1 time(s).
+There is a 3.74% hit rate of the pattern in string.
+Pattern occurs in string at index 804.
+Pattern was found in string 1 time(s).
+There is a 3.78% hit rate of the pattern in string.
+Pattern occurs in string at index 890.
+Pattern was found in string 1 time(s).
+There is a 4.77% hit rate of the pattern in string.
+Pattern occurs in string at index 998.
+Pattern was found in string 1 time(s).
+There is a 2.79% hit rate of the pattern in string.
+Pattern occurs in string at index 1062.
+Pattern was found in string 1 time(s).
+There is a 2.70% hit rate of the pattern in string.
+Pattern occurs in string at index 1124.
+Pattern was found in string 1 time(s).
+There is a 2.12% hit rate of the pattern in string.
+Pattern occurs in string at index 1173.
+Pattern was found in string 1 time(s).
+There is a 3.87% hit rate of the pattern in string.
+Pattern occurs in string at index 1261.
+Pattern was found in string 1 time(s).
+There is a 1.49% hit rate of the pattern in string.
+Pattern occurs in string at index 1296.
+Pattern was found in string 1 time(s).
+There is a 5.54% hit rate of the pattern in string.
+Pattern occurs in string at index 1421.
+Pattern was found in string 1 time(s).
+There is a 4.46% hit rate of the pattern in string.
+Pattern occurs in string at index 1522.
+Pattern was found in string 1 time(s).
+There is a 3.56% hit rate of the pattern in string.
+Pattern occurs in string at index 1603.
+Pattern was found in string 1 time(s).
+There is a 3.42% hit rate of the pattern in string.
+Pattern occurs in string at index 1681.
+Pattern was found in string 1 time(s).
+There is a 5.49% hit rate of the pattern in string.
+Pattern occurs in string at index 1805.
+Pattern was found in string 1 time(s).
+There is a 6.35% hit rate of the pattern in string.
+Pattern occurs in string at index 1948.
+Pattern was found in string 1 time(s).
+There is a 9.54% hit rate of the pattern in string.
+Pattern occurs in string at index 2162.
+Pattern was found in string 1 time(s).
+There is a 2.66% hit rate of the pattern in string.
+
+------------------------------------------------------------
+Total plagiarism hit rate of 'plag.txt' in 'test01.txt': 97.75%
+This document has an extremely high plagiarism threshhold and has been flagged for review.
+------------------------------------------------------------
+
+KMPSearch() starting...
+---> Potentially plagiarized input: 'plag.txt'
+---> Corpus document: 'test02.txt' (document 1 of 4)
+
+No pattern matches found.
+
+------------------------------------------------------------
+Total plagiarism hit rate of 'plag.txt' in 'test02.txt': 0.00%
+This document is not plagiarized.
+------------------------------------------------------------
+
+KMPSearch() starting...
+---> Potentially plagiarized input: 'plag.txt'
+---> Corpus document: 'test03.txt' (document 2 of 4)
+
+Pattern occurs in string at index 862.
+Pattern was found in string 1 time(s).
+There is a 1.74% hit rate of the pattern in string.
+Pattern occurs in string at index 909.
+Pattern was found in string 1 time(s).
+There is a 1.97% hit rate of the pattern in string.
+Pattern occurs in string at index 1462.
+Pattern was found in string 1 time(s).
+There is a 1.27% hit rate of the pattern in string.
+
+------------------------------------------------------------
+Total plagiarism hit rate of 'plag.txt' in 'test03.txt': 4.98%
+It is unlikely that this document is plagiarized.
+------------------------------------------------------------
+
+KMPSearch() starting...
+---> Potentially plagiarized input: 'plag.txt'
+---> Corpus document: 'test04.txt' (document 3 of 4)
+
+Pattern occurs in string at index 862.
+Pattern was found in string 1 time(s).
+There is a 1.39% hit rate of the pattern in string.
+Pattern occurs in string at index 909.
+Pattern was found in string 1 time(s).
+There is a 1.57% hit rate of the pattern in string.
+Pattern occurs in string at index 1462.
+Pattern was found in string 1 time(s).
+There is a 1.02% hit rate of the pattern in string.
+Pattern occurs in string at index 1497.
+Pattern was found in string 1 time(s).
+There is a 3.79% hit rate of the pattern in string.
+Pattern occurs in string at index 1622.
+Pattern was found in string 1 time(s).
+There is a 3.05% hit rate of the pattern in string.
+Pattern occurs in string at index 1723.
+Pattern was found in string 1 time(s).
+There is a 2.44% hit rate of the pattern in string.
+Pattern occurs in string at index 1804.
+Pattern was found in string 1 time(s).
+There is a 2.34% hit rate of the pattern in string.
+Pattern occurs in string at index 1882.
+Pattern was found in string 1 time(s).
+There is a 3.76% hit rate of the pattern in string.
+Pattern occurs in string at index 2006.
+Pattern was found in string 1 time(s).
+There is a 4.35% hit rate of the pattern in string.
+
+------------------------------------------------------------
+Total plagiarism hit rate of 'plag.txt' in 'test04.txt': 23.71%
+This document has an extremely high plagiarism threshhold and has been flagged for review.
+------------------------------------------------------------
+
+Plagiarism detection on document 'plag.txt' against ['test01.txt', 'test02.txt', 'test03.txt', 'test04.txt'] was successfully completed.
+
+---> Total documents checked: 	4
+
+---> Highest hit rate: 			97.75%
+---> Associated document: 		test01.txt
+
+---> Lowest hit rate: 			4.98%
+---> Associated document: 		test03.txt
+
+All results:
+	test01.txt: 97.75%
+	test03.txt: 4.98%
+	test04.txt: 23.71%
+
+Files without hits have been excluded in the results above.
 ```
