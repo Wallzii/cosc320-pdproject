@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from kmp import KMPSearch
-from tryItABunch import tryItABunch, tryItABunchKMP, tryItABunchKMPEqual, tryItABunchKMPLargePat, tryItABunchKMPWrapper, tryItABunchKMPWrapperEqual
+from tryItABunch import tryItABunch, tryItABunchKMP, tryItABunchKMPEqual, tryItABunchKMPLargePat, tryItABunchKMPWrapper
 
 
 config = configparser.ConfigParser()
@@ -17,9 +17,11 @@ config.read('config.ini')
 CORPUS_DIR = config['DEFAULT']['CorpusDirectoryMultiple']
 CORPUS_DIR_SINGULAR = config['DEFAULT']['CorpusDirectorySingular']
 PLAG_DIR = config['DEFAULT']['PlagiarizedDirectory']
+CORPUS_USE_SINGULAR = config.getboolean('DEFAULT', 'CorpusUseSingular')
 VERBOSE = config.getboolean('DEFAULT', 'VerboseMode')
 ENABLE_KMP = config.getboolean('ALGORITHMS', 'Enable_KMP')
 ANALYSIS_KMP = config.getboolean('ANALYSIS', 'RuntimeAnalysis_KMP')
+ANALYSIS_KMP_WRAPPER = config.getboolean('ANALYSIS', 'RuntimeAnalysis_KMP_Wrapper')
 
 
 class Document:
@@ -363,7 +365,7 @@ if __name__ == '__main__':
         print("Verbose output enabled.")
 
     # If analysis mode of any algorithm is enabled, do not conduct plagiarism search (disable analysis mode in 'config.ini'):
-    if not ANALYSIS_KMP:
+    if not ANALYSIS_KMP and not ANALYSIS_KMP_WRAPPER:
         # Get the potentially plagiarized document:
         plagiarized = compile_plag_document()
         if plagiarized is False:
@@ -373,16 +375,23 @@ if __name__ == '__main__':
             print("Valid document found: '{doc}'".format(doc=plagiarized.filename))
             plagiarized.info()
 
-        # Scan for multiple input documents to populate the corpus (CorpusDirectoryMultiple in config.ini):
-        # documents = compile_corpus_documents()
-        # if documents is False:
-        #     print("Application closing as there are no documents to construct a corpus. Please place documents of type '.txt' into directory '{dir}' and run the program again.".format(dir=os.path.join(CORPUS_DIR)))
-        #     sys.exit()
-        # else:
-        #     print("Valid set of documents created.")
-
-        # Scan single input document to populare the corpus (CorpusDirectorySingular in config.ini):
-        documents = extract_corpus_files()
+        # Use a singular document as input for the corpus (each individual line in the file is treated as a single document), or a set of individual documents:
+        if CORPUS_USE_SINGULAR:
+            # Get single input document to populate the corpus (CorpusDirectorySingular in config.ini):
+            documents = extract_corpus_files()
+            if documents is False:
+                print("Application closing as there is no document to construct a corpus. Please place a document of type '.txt' into directory '{dir}' and run the program again.".format(dir=os.path.join(CORPUS_DIR_SINGULAR)))
+                sys.exit()
+            else:
+                print("Valid set of documents created.")
+        else:
+            # Scan for multiple input documents to populate the corpus (CorpusDirectoryMultiple in config.ini):
+            documents = compile_corpus_documents()
+            if documents is False:
+                print("Application closing as there are no documents to construct a corpus. Please place documents of type '.txt' into directory '{dir}' and run the program again.".format(dir=os.path.join(CORPUS_DIR)))
+                sys.exit()
+            else:
+                print("Valid set of documents created.")
 
         # Construct the corpus from the found documents:
         corpus = compile_corpus(documents)
@@ -408,36 +417,48 @@ if __name__ == '__main__':
 
     # Runtime analysis of KMP (set RuntimeAnalysis_KMP to True in 'config.ini'):
     if ANALYSIS_KMP:
-        # Plot m < n:
-        nValues, tValues = tryItABunch(square_n, startN=10, endN=1000, stepSize=10, numTrials=20, listMax = 10)
-        plt.plot(nValues, tValues, color="blue", label="square_n()")
+        # Plot basic n^2 function:
+        # nValues, tValues = tryItABunch(square_n, startN=10, endN=1000, stepSize=10, numTrials=20, listMax = 10)
+        # plt.plot(nValues, tValues, color="blue", label="n^2")
 
-        # nValues, tValues = tryItABunchKMP( KMPSearch, startN = 50, endN = 20000, stepSize=50, numTrials=10, patternLength = 10)
-        # plt.plot(nValues, tValues, color="red", label="KMPSearch() m < n")
+        # Plot KMPSearch(): m = n:
+        nValuesEqual, tValuesEqual = tryItABunchKMPEqual( KMPSearch, startN = 50, endN = 20000, stepSize=50, numTrials=20)
+        plt.plot(nValuesEqual, tValuesEqual, color="blue", label="KMPSearch() m = n")
 
-        # nValues, tValues = tryItABunchKMPWrapper( KMP_wrapper_analysis, startN = 1, endN = 2, stepSize=1, numTrials=1, patternLength = 10, amt_patterns = 25, amt_corpus_docs = 100)
-        # plt.plot(nValues, tValues, color="darkred", label="KMP_wrapper(KMPSearch()) m < n, pat=25,corp=100")
+        # Plot KMPSearch(): m < n:
+        nValues, tValues = tryItABunchKMP( KMPSearch, startN = 50, endN = 20000, stepSize=50, numTrials=10, patternLength = 20)
+        plt.plot(nValues, tValues, color="red", label="KMPSearch() m < n")
 
-        nValuesWrap, tValuesWrap = tryItABunchKMPWrapper( KMP_wrapper_analysis, startN = 50, endN = 1000, stepSize=50, numTrials=1, patternLength = 10)
-        plt.plot(nValuesWrap, tValuesWrap, color="red", label="KMP_wrapper(KMPSearch()) m < n, P.length = n ,S.len = n, m = 10, s.len = n")
-        nValuesWrapLessPatterns, tValuesWrapLessPatterns = tryItABunchKMPWrapper( KMP_wrapper_analysis, startN = 50, endN = 1000, stepSize=50, numTrials=1, patternLength = 10, amtPatternsSmaller = True)
-        plt.plot(nValuesWrapLessPatterns, tValuesWrapLessPatterns, color="yellow", label="KMP_wrapper(KMPSearch()) m < n, P.length = n / 2 ,S.len = n, m = 10, s.len = n")
-        nValuesWrapLessPatterns, tValuesWrapLessPatterns = tryItABunchKMPWrapper( KMP_wrapper_analysis, startN = 50, endN = 1000, stepSize=50, numTrials=1, patternLength = 10, amtPatternsLarger = True)
-        plt.plot(nValuesWrapLessPatterns, tValuesWrapLessPatterns, color="green", label="KMP_wrapper(KMPSearch()) m < n, P.length = n * 2 ,S.len = n, m = 10, s.len = n")
+        # # Plot KMPSearch(): m > n:
+        nValuesLargePat, tValuesLargePat = tryItABunchKMPLargePat( KMPSearch, startN = 50, endN = 20000, stepSize=50, numTrials=10, stringLength = 20)
+        plt.plot(nValuesLargePat, tValuesLargePat, color="green", label="KMPSearch() m > n")
 
-        # Plot m = n:
-        # nValuesEqual, tValuesEqual = tryItABunchKMPEqual( KMPSearch, startN = 50, endN = 20000, stepSize=50, numTrials=10)
-        # plt.plot(nValuesEqual, tValuesEqual, color="blue", label="KMPSearch() m = n")
+        plt.xlabel("Length of string, n", fontsize=28)
+        plt.xticks(fontsize=24)
+        plt.yticks(fontsize=24)
+        plt.ylabel("Time(ms)", fontsize=28)
+        plt.legend(fontsize=22)
+        plt.title("KMPSearch Runtimes", fontsize=30)
+        plt.show()
 
-        # nValuesEqual, tValuesEqual = tryItABunchKMPWrapperEqual( KMP_wrapper_analysis, startN = 50, endN = 1000, stepSize=50, numTrials=1, amt_patterns = 100, amt_corpus_docs = 100)
-        # plt.plot(nValuesEqual, tValuesEqual, color="blue", label="KMP_wrapper() m = n")
 
-        # # Plot m > n:
-        # nValuesLargePat, tValuesLargePat = tryItABunchKMPLargePat( KMPSearch, startN = 50, endN = 20000, stepSize=50, numTrials=10, stringLength = 10)
-        # plt.plot(nValuesLargePat, tValuesLargePat, color="green", label="KMPSearch() m > n")
+    if ANALYSIS_KMP_WRAPPER:
+        # Plot KMP_wrapper(): w = z
+        nValuesWrap, tValuesWrap = tryItABunchKMPWrapper( KMP_wrapper_analysis, startN = 50, endN = 1000, stepSize=50, numTrials=1)
+        plt.plot(nValuesWrap, tValuesWrap, color="red", label="KMP_wrapper(KMPSearch()) w = z; n = z, m = z")
+        
+        # Plot KMP_wrapper(): w < z
+        nValuesWrapLessPatterns, tValuesWrapLessPatterns = tryItABunchKMPWrapper( KMP_wrapper_analysis, startN = 50, endN = 1000, stepSize=50, numTrials=1, amtPatternsSmaller = True)
+        plt.plot(nValuesWrapLessPatterns, tValuesWrapLessPatterns, color="yellow", label="KMP_wrapper(KMPSearch()) w < z, w = (z / 2); n = z, m = z")
+        
+        # Plot KMP_wrapper(): w > z
+        nValuesWrapLessPatterns, tValuesWrapLessPatterns = tryItABunchKMPWrapper( KMP_wrapper_analysis, startN = 50, endN = 1000, stepSize=50, numTrials=1, amtPatternsLarger = True)
+        plt.plot(nValuesWrapLessPatterns, tValuesWrapLessPatterns, color="green", label="KMP_wrapper(KMPSearch()) w > z, w = (z * 2); n = z, m = z")
 
-        plt.xlabel("n")
-        plt.ylabel("Time(ms)")
-        plt.legend()
-        plt.title("KMPSearch Runtimes")
+        plt.xlabel("Length of set S[], z", fontsize=28)
+        plt.xticks(fontsize=24)
+        plt.yticks(fontsize=24)
+        plt.ylabel("Time(ms)", fontsize=28)
+        plt.legend(fontsize=22)
+        plt.title("KMPSearch Runtimes within Wrapper Function", fontsize=30)
         plt.show()
