@@ -317,7 +317,7 @@ def KMP_wrapper(corpus: Corpus, plagiarized: Document, results: Results):
     for i, corp_doc in enumerate(corpus.documents):
         total_hit_rate = 0
         if VERBOSE: print()
-        print("KMPSearch() starting...\n---> Potentially plagiarized input: '{plag}'\n---> Corpus document: '{corp}' (document {x} of {x_len})\n".format(plag=plagiarized.filename, corp=corp_doc, x=i, x_len=len(corpus.documents)))
+        print("KMPSearch() starting...\n---> Potentially plagiarized input: '{plag}'\n---> Corpus document: '{corp}' (document {x} of {x_len})\n".format(plag=plagiarized.filename, corp=corp_doc, x=(i + 1), x_len=len(corpus.documents)))
         for pattern in plagiarized.sentences:
             total_hit_rate += KMPSearch(pattern, corpus.documents[corp_doc].raw_text)
             if pattern is plagiarized.sentences[len(plagiarized.sentences) - 1]:

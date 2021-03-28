@@ -28,19 +28,19 @@ A valid corpus has been created.
 Corpus contains 4 document(s): ['test01.txt', 'test02.txt', 'test03.txt', 'test04.txt']
 KMPSearch() starting...
 ---> Potentially plagiarized input: 'plag.txt'
----> Corpus document: 'test01.txt' (document 0 of 4)
+---> Corpus document: 'test01.txt' (document 1 of 4)
 
 KMPSearch() starting...
 ---> Potentially plagiarized input: 'plag.txt'
----> Corpus document: 'test02.txt' (document 1 of 4)
+---> Corpus document: 'test02.txt' (document 2 of 4)
 
 KMPSearch() starting...
 ---> Potentially plagiarized input: 'plag.txt'
----> Corpus document: 'test03.txt' (document 2 of 4)
+---> Corpus document: 'test03.txt' (document 3 of 4)
 
 KMPSearch() starting...
 ---> Potentially plagiarized input: 'plag.txt'
----> Corpus document: 'test04.txt' (document 3 of 4)
+---> Corpus document: 'test04.txt' (document 4 of 4)
 
 
 Plagiarism detection on document 'plag.txt' against ['test01.txt', 'test02.txt', 'test03.txt', 'test04.txt'] was successfully completed.
@@ -77,7 +77,7 @@ Corpus contains 4 document(s): ['test01.txt', 'test02.txt', 'test03.txt', 'test0
 
 KMPSearch() starting...
 ---> Potentially plagiarized input: 'plag.txt'
----> Corpus document: 'test01.txt' (document 0 of 4)
+---> Corpus document: 'test01.txt' (document 1 of 4)
 
 Pattern occurs in string at index 0.
 Pattern was found in string 1 time(s).
@@ -159,7 +159,7 @@ This document has an extremely high plagiarism threshhold and has been flagged f
 
 KMPSearch() starting...
 ---> Potentially plagiarized input: 'plag.txt'
----> Corpus document: 'test02.txt' (document 1 of 4)
+---> Corpus document: 'test02.txt' (document 2 of 4)
 
 No pattern matches found.
 
@@ -170,7 +170,7 @@ This document is not plagiarized.
 
 KMPSearch() starting...
 ---> Potentially plagiarized input: 'plag.txt'
----> Corpus document: 'test03.txt' (document 2 of 4)
+---> Corpus document: 'test03.txt' (document 3 of 4)
 
 Pattern occurs in string at index 862.
 Pattern was found in string 1 time(s).
@@ -189,7 +189,7 @@ It is unlikely that this document is plagiarized.
 
 KMPSearch() starting...
 ---> Potentially plagiarized input: 'plag.txt'
----> Corpus document: 'test04.txt' (document 3 of 4)
+---> Corpus document: 'test04.txt' (document 4 of 4)
 
 Pattern occurs in string at index 862.
 Pattern was found in string 1 time(s).
