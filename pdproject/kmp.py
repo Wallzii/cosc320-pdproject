@@ -11,6 +11,10 @@ def KMPSearch(pattern: str, string: str) -> int:
     m = len(pattern)
     n = len(string)
     lps = LPS(pattern)
+
+    if m > n:
+        print("Invalid pattern length: pattern is longer than string; aborting KMP.")
+        return 0
     
     matched = 0
     total_matches = 0

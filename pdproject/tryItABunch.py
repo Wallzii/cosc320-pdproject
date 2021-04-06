@@ -246,3 +246,27 @@ def tryItABunchLCSSWrapper(myFn, startN=10, endN=100, stepSize=10, numTrials=20,
         tValues.append(runtime)
     print("Analysis of {name}(), where z = {z} and w = {w}, finished!".format(name=myFn.__name__, z=amt_corpus_docs, w=amt_patters))
     return nValues, tValues
+
+
+# Analysis specific to KMPSearch (n = m variant):
+def tryItABunchRabinKarpEqual(myFn, startN=10, endN=100, stepSize=10, numTrials=20):
+    nValues = []
+    tValues = []
+    for n in range(startN, endN, stepSize):
+        if n % 1000 == 0:
+            print("{name}(), m = n: {n}...".format(name=myFn.__name__,n=n))
+        # run myFn several times and average to get a decent idea.
+        runtime = 0
+        for t in range(numTrials):
+            pattern = ''.join(choice(ascii_uppercase) for i in range(n)) # generate a random string of length listMax
+            # string = ''.join(choice(ascii_uppercase) for i in range(n)) # generate a random string of length list2Max
+            string = pattern
+            start = time.time()
+            myFn( pattern, string )
+            end = time.time()
+            runtime += (end - start) * 1000 # measure in milliseconds
+        runtime = runtime/numTrials
+        nValues.append(n)
+        tValues.append(runtime)
+    print("Analysis of {name}(), where m = n, finished!".format(name=myFn.__name__))
+    return nValues, tValues
