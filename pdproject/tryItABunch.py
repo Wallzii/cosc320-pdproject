@@ -111,7 +111,12 @@ def tryItABunchKMPWrapper(myFn, startN=10, endN=100, stepSize=10, numTrials=20, 
     tValues = []
     for n in range(startN, endN, stepSize):
         if n % 50 == 0:
-            print("{name}(), m < n: {n}...".format(name=myFn.__name__,n=n))
+            if amtPatternsSmaller is True:
+                print("{name}(), w < z: {n}...".format(name=myFn.__name__,n=n))
+            elif amtPatternsLarger is True:
+                print("{name}(), w > z: {n}...".format(name=myFn.__name__,n=n))
+            else:
+                print("{name}(), w = z: {n}...".format(name=myFn.__name__,n=n))
         # run myFn several times and average to get a decent idea.
         runtime = 0
         for t in range(numTrials):
@@ -131,5 +136,113 @@ def tryItABunchKMPWrapper(myFn, startN=10, endN=100, stepSize=10, numTrials=20, 
         runtime = runtime/numTrials
         nValues.append(n)
         tValues.append(runtime)
-    print("Analysis of {name}(), where z = {z} and w = {w}, finished!".format(name=myFn.__name__), z=amt_corpus_docs, w=amt_patters)
+    print("Analysis of {name}(), where z = {z} and w = {w}, finished!".format(name=myFn.__name__, z=amt_corpus_docs, w=amt_patters))
+    return nValues, tValues
+
+
+# Analysis specific to LCSS (standard n > m):
+def tryItABunchLCSS(myFn, startN=10, endN=100, stepSize=10, numTrials=20, patternLength = 10):
+    nValues = []
+    tValues = []
+    for n in range(startN, endN, stepSize):
+        if n % 250 == 0:
+            print("{name}(), m < n: {n}...".format(name=myFn.__name__,n=n))
+        # run myFn several times and average to get a decent idea.
+        runtime = 0
+        for t in range(numTrials):
+            pattern = ''.join(choice(ascii_uppercase) for i in range(patternLength)) # generate a random string of length patternLength
+            # print(pattern)
+            string = ''.join(choice(ascii_uppercase) for i in range(n)) # generate a random string of length n
+            # print(string)
+            start = time.time()
+            myFn( string, pattern )
+            end = time.time()
+            runtime += (end - start) * 1000 # measure in milliseconds
+        runtime = runtime/numTrials
+        nValues.append(n)
+        tValues.append(runtime)
+    print("Analysis of {name}(), where m < n, finished!".format(name=myFn.__name__))
+    return nValues, tValues
+
+
+# Analysis specific to LCSS (n = m variant):
+def tryItABunchLCSSEqual(myFn, startN=10, endN=100, stepSize=10, numTrials=20):
+    nValues = []
+    tValues = []
+    for n in range(startN, endN, stepSize):
+        if n % 250 == 0:
+            print("{name}(), m = n: {n}...".format(name=myFn.__name__,n=n))
+        # run myFn several times and average to get a decent idea.
+        runtime = 0
+        for t in range(numTrials):
+            pattern = ''.join(choice(ascii_uppercase) for i in range(n)) # generate a random string of length listMax
+            string = ''.join(choice(ascii_uppercase) for i in range(n)) # generate a random string of length list2Max
+            start = time.time()
+            myFn( string, pattern )
+            end = time.time()
+            runtime += (end - start) * 1000 # measure in milliseconds
+        runtime = runtime/numTrials
+        nValues.append(n)
+        tValues.append(runtime)
+    print("Analysis of {name}(), where m = n, finished!".format(name=myFn.__name__))
+    return nValues, tValues
+
+
+# Analysis specific to LCSS (n < m variant):
+def tryItABunchLCSSLargePat(myFn, startN=10, endN=100, stepSize=10, numTrials=20, stringLength = 500):
+    nValues = []
+    tValues = []
+    for n in range(startN, endN, stepSize):
+        if n % 250 == 0:
+            print("{name}(), m > n: {n}...".format(name=myFn.__name__,n=n))
+        # run myFn several times and average to get a decent idea.
+        runtime = 0
+        for t in range(numTrials):
+            pattern = ''.join(choice(ascii_uppercase) for i in range(n)) # generate a random string of length listMax
+            string = ''.join(choice(ascii_uppercase) for i in range(stringLength)) # generate a random string of length list2Max
+            start = time.time()
+            myFn( string, pattern )
+            end = time.time()
+            runtime += (end - start) * 1000 # measure in milliseconds
+        runtime = runtime/numTrials
+        nValues.append(n)
+        tValues.append(runtime)
+    print("Analysis of {name}(), where m > n, finished!".format(name=myFn.__name__))
+    return nValues, tValues
+
+
+# Analysis specific to LCSS, but using the corpus document wrapper function:
+def tryItABunchLCSSWrapper(myFn, startN=10, endN=100, stepSize=10, numTrials=20, amtPatternsSmaller = False, amtPatternsLarger = False):
+    nValues = []
+    tValues = []
+    amt_corpus_docs = 0
+    amt_patters = 0
+    for n in range(startN, endN, stepSize):
+        if n % 50 == 0:
+            if amtPatternsSmaller is True:
+                print("{name}(), w < z: {n}...".format(name=myFn.__name__,n=n))
+            elif amtPatternsLarger is True:
+                print("{name}(), w > z: {n}...".format(name=myFn.__name__,n=n))
+            else:
+                print("{name}(), w = z: {n}...".format(name=myFn.__name__,n=n))
+        # run myFn several times and average to get a decent idea.
+        runtime = 0
+        for t in range(numTrials):
+            pattern = ''.join(choice(ascii_uppercase) for i in range(n)) # generate a random string of length n
+            string = ''.join(choice(ascii_uppercase) for i in range(n)) # generate a random string of length n
+            if amtPatternsSmaller is True:
+                amt_patters = (int)(n / 2)
+            elif amtPatternsLarger is True:
+                amt_patters = (int)(n * 2)
+            else:
+                amt_patters = n
+            amt_corpus_docs = n
+            start = time.time()
+            myFn(amt_patters, amt_corpus_docs, pattern, string)
+            end = time.time()
+            runtime += (end - start) * 1000 # measure in milliseconds
+        runtime = runtime/numTrials
+        nValues.append(n)
+        tValues.append(runtime)
+    print("Analysis of {name}(), where z = {z} and w = {w}, finished!".format(name=myFn.__name__, z=amt_corpus_docs, w=amt_patters))
     return nValues, tValues

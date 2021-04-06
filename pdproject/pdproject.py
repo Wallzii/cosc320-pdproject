@@ -9,7 +9,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from kmp import KMPSearch
-from tryItABunch import tryItABunch, tryItABunchKMP, tryItABunchKMPEqual, tryItABunchKMPLargePat, tryItABunchKMPWrapper
+from lcss import LCSS
+from tryItABunch import tryItABunch, tryItABunchKMP, tryItABunchKMPEqual, tryItABunchKMPLargePat, tryItABunchKMPWrapper, \
+                        tryItABunchLCSS, tryItABunchLCSSEqual, tryItABunchLCSSLargePat, tryItABunchLCSSWrapper
 
 
 config = configparser.ConfigParser()
@@ -20,8 +22,11 @@ PLAG_DIR = config['DEFAULT']['PlagiarizedDirectory']
 CORPUS_USE_SINGULAR = config.getboolean('DEFAULT', 'CorpusUseSingular')
 VERBOSE = config.getboolean('DEFAULT', 'VerboseMode')
 ENABLE_KMP = config.getboolean('ALGORITHMS', 'Enable_KMP')
+ENABLE_LCSS = config.getboolean('ALGORITHMS', 'Enable_LCSS')
 ANALYSIS_KMP = config.getboolean('ANALYSIS', 'RuntimeAnalysis_KMP')
 ANALYSIS_KMP_WRAPPER = config.getboolean('ANALYSIS', 'RuntimeAnalysis_KMP_Wrapper')
+ANALYSIS_LCSS = config.getboolean('ANALYSIS', 'RuntimeAnalysis_LCSS')
+ANALYSIS_LCSS_WRAPPER = config.getboolean('ANALYSIS', 'RuntimeAnalysis_LCSS_Wrapper')
 
 
 class Document:
@@ -129,7 +134,10 @@ class Corpus:
     def info(self):
         """Outputs number of documents in the corpus along with their dictionary keys."""
         if len(self.documents) > 0:
-            print("Corpus contains {documents} document(s): {keys}".format(documents=len(self.documents), keys=[*self.documents]))
+            if VERBOSE:
+                print("Corpus contains {documents} document(s): {keys}".format(documents=len(self.documents), keys=[*self.documents]))
+            else:
+                print("Corpus contains {documents} document(s).".format(documents=len(self.documents)))
         else:
             print("No Document keys in Corpus to display.")
 
@@ -339,6 +347,32 @@ def KMP_wrapper_analysis(amt_patterns:int, amt_corpus_docs:int, pattern: str, st
             KMPSearch(pattern, string)
 
 
+def LCSS_wrapper(corpus: Corpus, plagiarized: Document, results: Results):
+    for i, corp_doc in enumerate(corpus.documents):
+        total_hit_rate = 0
+        if VERBOSE: print()
+        print("LCSS() starting...\n---> Potentially plagiarized input: '{plag}'\n---> Corpus document: '{corp}' (document {x} of {x_len})\n".format(plag=plagiarized.filename, corp=corp_doc, x=(i + 1), x_len=len(corpus.documents)))
+        for pattern in plagiarized.paragraphs:
+            total_hit_rate += LCSS(corpus.documents[corp_doc].raw_text, pattern)
+            if pattern is plagiarized.paragraphs[len(plagiarized.paragraphs) - 1]: # If we are checking the last paragraph:
+                if VERBOSE:
+                    if total_hit_rate == 0:
+                        print("No pattern matches found.")
+                    print("\n------------------------------------------------------------")
+                    print("Total plagiarism hit rate of '{plag_doc}' in '{corp_doc}': {rate:.2f}%".format(plag_doc=plagiarized.filename, corp_doc=corp_doc, rate=total_hit_rate))
+                    hit_rate_analysis(total_hit_rate)
+                    print("------------------------------------------------------------")
+                results.add(corpus.documents[corp_doc], total_hit_rate)
+
+
+def LCSS_wrapper_analysis(amt_patterns:int, amt_corpus_docs:int, pattern: str, string: str):
+    for i in range(amt_corpus_docs):
+        # print("i = {i}".format(i=i))
+        for j in range(amt_patterns):
+            # print("j = {j}".format(j=j))
+            LCSS(string, pattern)
+
+
 def hit_rate_analysis(rate: int):
     if rate > 20:
         print("This document has an extremely high plagiarism threshhold and has been flagged for review.")
@@ -361,7 +395,7 @@ if __name__ == '__main__':
         print("Verbose output enabled.")
 
     # If analysis mode of any algorithm is enabled, do not conduct plagiarism search (disable analysis mode in 'config.ini'):
-    if not ANALYSIS_KMP and not ANALYSIS_KMP_WRAPPER:
+    if not ANALYSIS_KMP and not ANALYSIS_KMP_WRAPPER and not ANALYSIS_LCSS and not ANALYSIS_LCSS_WRAPPER:
         # Get the potentially plagiarized document:
         plagiarized = compile_plag_document()
         if plagiarized is False:
@@ -398,24 +432,40 @@ if __name__ == '__main__':
             print("A valid corpus has been created.")
             corpus.info()
 
-        # Create empty results object for statistics tracking:
-        results = Results()
-
-        # Conduct KMPSearch on the first sentence of the plagiarized document against the raw text of the first corpus document:
+        # Conduct KMPSearch on each sentence in the plagiarized document against the raw text of all corpus documents:
         if ENABLE_KMP:
-            KMP_wrapper(corpus, plagiarized, results)
+            kmp_results = Results()
+            KMP_wrapper(corpus, plagiarized, kmp_results)
         else:
-            print("KMPSearch() has been disabled for plagiarism detection.")
+            print("\nKMPSearch() has been disabled for plagiarism detection.")
 
-        print("\nPlagiarism detection on document '{doc}' against {corpus} was successfully completed.".format(doc=plagiarized.filename,corpus=corpus.keys))
-        results.display(show_quartiles=False)
+        # Conduct LCSS on the each paragraph of the plagiarized document against the raw text of all corpus documents:
+        if ENABLE_LCSS:
+            lcss_results = Results()
+            LCSS_wrapper(corpus, plagiarized, lcss_results)
+        else:
+            print("LCSS() has been disabled for plagiarism detection.")
+
+        if VERBOSE:
+            print("Plagiarism detection on document '{doc}' against {corpus} was successfully completed.".format(doc=plagiarized.filename,corpus=corpus.keys))
+        else:
+            print("Plagiarism detection on document '{doc}' against {size} corpus documents was successfully completed.".format(doc=plagiarized.filename,size=len(corpus.documents)))
+        print("\n-------------------- RESULTS SUMMARY --------------------\n")
+        if ENABLE_KMP:
+            print("*** Results for KMPSearch algorithm:")
+            kmp_results.display()
+            print()
+        if ENABLE_LCSS:
+            print("*** Results for LCSS algorithm:")
+            lcss_results.display()
+            print()
 
 
     # Runtime analysis of KMP (set RuntimeAnalysis_KMP to True in 'config.ini'):
     if ANALYSIS_KMP:
         # Plot basic n^2 function:
         # nValues, tValues = tryItABunch(square_n, startN=10, endN=1000, stepSize=10, numTrials=20, listMax = 10)
-        # plt.plot(nValues, tValues, color="blue", label="n^2")
+        # plt.plot(nValues, tValues, color="blue", label="n^2") 
 
         # Plot KMPSearch(): m = n:
         nValuesEqual, tValuesEqual = tryItABunchKMPEqual( KMPSearch, startN = 50, endN = 20000, stepSize=50, numTrials=20)
@@ -457,4 +507,53 @@ if __name__ == '__main__':
         plt.ylabel("Time(ms)", fontsize=28)
         plt.legend(fontsize=22)
         plt.title("KMPSearch Runtimes within Wrapper Function", fontsize=30)
+        plt.show()
+
+
+    # Runtime analysis of LCSS (set RuntimeAnalysis_KMP to True in 'config.ini'):
+    if ANALYSIS_LCSS:
+        # Plot basic n^2 function:
+        # nValues, tValues = tryItABunch(square_n, startN=10, endN=1000, stepSize=10, numTrials=20, listMax = 10)
+        # plt.plot(nValues, tValues, color="blue", label="n^2") 
+
+        # Plot LCSS(): m = n:
+        # nValuesEqual, tValuesEqual = tryItABunchLCSSEqual( LCSS, startN = 50, endN = 1000, stepSize=50, numTrials=10)
+        # plt.plot(nValuesEqual, tValuesEqual, color="blue", label="LCSS() m = n")
+
+        # Plot LCSS(): m < n:
+        nValues, tValues = tryItABunchLCSS( LCSS, startN = 50, endN = 5000, stepSize=50, numTrials=20, patternLength = 20)
+        plt.plot(nValues, tValues, color="red", label="LCSS() m < n")
+
+        # # Plot LCSS(): m > n:
+        nValuesLargePat, tValuesLargePat = tryItABunchLCSSLargePat( LCSS, startN = 50, endN = 5000, stepSize=50, numTrials=20, stringLength = 20)
+        plt.plot(nValuesLargePat, tValuesLargePat, color="green", label="LCSS() m > n")
+
+        plt.xlabel("Length of string, n", fontsize=28)
+        plt.xticks(fontsize=24)
+        plt.yticks(fontsize=24)
+        plt.ylabel("Time(ms)", fontsize=28)
+        plt.legend(fontsize=22)
+        plt.title("LCSS Runtimes", fontsize=30)
+        plt.show()
+
+
+    if ANALYSIS_LCSS_WRAPPER:
+        # Plot LCSS_wrapper(): w = z
+        nValuesWrap, tValuesWrap = tryItABunchLCSSWrapper( LCSS_wrapper_analysis, startN = 50, endN = 200, stepSize=50, numTrials=1)
+        plt.plot(nValuesWrap, tValuesWrap, color="red", label="LCSS_wrapper(LCSS()) w = z; n = z, m = z")
+        
+        # Plot LCSS_wrapper(): w < z
+        nValuesWrapLessPatterns, tValuesWrapLessPatterns = tryItABunchLCSSWrapper( LCSS_wrapper_analysis, startN = 50, endN = 1000, stepSize=50, numTrials=1, amtPatternsSmaller = True)
+        plt.plot(nValuesWrapLessPatterns, tValuesWrapLessPatterns, color="yellow", label="LCSS_wrapper(LCSS()) w < z, w = (z / 2); n = z, m = z")
+        
+        # Plot LCSS_wrapper(): w > z
+        nValuesWrapLessPatterns, tValuesWrapLessPatterns = tryItABunchLCSSWrapper( LCSS_wrapper_analysis, startN = 50, endN = 1000, stepSize=50, numTrials=1, amtPatternsLarger = True)
+        plt.plot(nValuesWrapLessPatterns, tValuesWrapLessPatterns, color="green", label="LCSS_wrapper(LCSS()) w > z, w = (z * 2); n = z, m = z")
+
+        plt.xlabel("Length of set S[], z", fontsize=28)
+        plt.xticks(fontsize=24)
+        plt.yticks(fontsize=24)
+        plt.ylabel("Time(ms)", fontsize=28)
+        plt.legend(fontsize=22)
+        plt.title("LCSS Runtimes within Wrapper Function", fontsize=30)
         plt.show()
