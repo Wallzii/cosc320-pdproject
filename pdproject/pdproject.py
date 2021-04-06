@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 
 from kmp import KMPSearch
 from lcss import LCSS
+from rabinkarp import RabinKarp
 from tryItABunch import tryItABunch, tryItABunchKMP, tryItABunchKMPEqual, tryItABunchKMPLargePat, tryItABunchKMPWrapper, \
                         tryItABunchLCSS, tryItABunchLCSSEqual, tryItABunchLCSSLargePat, tryItABunchLCSSWrapper
 
@@ -23,10 +24,13 @@ CORPUS_USE_SINGULAR = config.getboolean('DEFAULT', 'CorpusUseSingular')
 VERBOSE = config.getboolean('DEFAULT', 'VerboseMode')
 ENABLE_KMP = config.getboolean('ALGORITHMS', 'Enable_KMP')
 ENABLE_LCSS = config.getboolean('ALGORITHMS', 'Enable_LCSS')
+ENABLE_RabinKarp = config.getboolean('ALGORITHMS', 'Enable_RabinKarp')
 ANALYSIS_KMP = config.getboolean('ANALYSIS', 'RuntimeAnalysis_KMP')
 ANALYSIS_KMP_WRAPPER = config.getboolean('ANALYSIS', 'RuntimeAnalysis_KMP_Wrapper')
 ANALYSIS_LCSS = config.getboolean('ANALYSIS', 'RuntimeAnalysis_LCSS')
 ANALYSIS_LCSS_WRAPPER = config.getboolean('ANALYSIS', 'RuntimeAnalysis_LCSS_Wrapper')
+ANALYSIS_RabinKarp = config.getboolean('ANALYSIS', 'RuntimeAnalysis_RabinKarp')
+ANALYSIS_RabinKarp_WRAPPER = config.getboolean('ANALYSIS', 'RuntimeAnalysis_RabinKarp_Wrapper')
 
 
 class Document:
@@ -373,6 +377,32 @@ def LCSS_wrapper_analysis(amt_patterns:int, amt_corpus_docs:int, pattern: str, s
             LCSS(string, pattern)
 
 
+def rabinkarp_wrapper(corpus: Corpus, plagiarized: Document, results: Results):
+    for i, corp_doc in enumerate(corpus.documents):
+        total_hit_rate = 0
+        if VERBOSE: print()
+        print("RabinKarp() starting...\n---> Potentially plagiarized input: '{plag}'\n---> Corpus document: '{corp}' (document {x} of {x_len})\n".format(plag=plagiarized.filename, corp=corp_doc, x=(i + 1), x_len=len(corpus.documents)))
+        for pattern in plagiarized.sentences:
+            total_hit_rate += RabinKarp(pattern, corpus.documents[corp_doc].raw_text)
+            if pattern is plagiarized.sentences[len(plagiarized.sentences) - 1]:
+                if VERBOSE:
+                    if total_hit_rate == 0:
+                        print("No pattern matches found.")
+                    print("\n------------------------------------------------------------")
+                    print("Total plagiarism hit rate of '{plag_doc}' in '{corp_doc}': {rate:.2f}%".format(plag_doc=plagiarized.filename, corp_doc=corp_doc, rate=total_hit_rate))
+                    hit_rate_analysis(total_hit_rate)
+                    print("------------------------------------------------------------")
+                results.add(corpus.documents[corp_doc], total_hit_rate)
+
+
+def rabinkarp_wrapper_analysis(amt_patterns:int, amt_corpus_docs:int, pattern: str, string: str):
+    for i in range(amt_corpus_docs):
+        # print("i = {i}".format(i=i))
+        for j in range(amt_patterns):
+            # print("j = {j}".format(j=j))
+            RabinKarp(pattern, string)
+
+
 def hit_rate_analysis(rate: int):
     if rate > 20:
         print("This document has an extremely high plagiarism threshhold and has been flagged for review.")
@@ -395,7 +425,7 @@ if __name__ == '__main__':
         print("Verbose output enabled.")
 
     # If analysis mode of any algorithm is enabled, do not conduct plagiarism search (disable analysis mode in 'config.ini'):
-    if not ANALYSIS_KMP and not ANALYSIS_KMP_WRAPPER and not ANALYSIS_LCSS and not ANALYSIS_LCSS_WRAPPER:
+    if not ANALYSIS_KMP and not ANALYSIS_KMP_WRAPPER and not ANALYSIS_LCSS and not ANALYSIS_LCSS_WRAPPER and not ANALYSIS_RabinKarp and not ANALYSIS_RabinKarp_WRAPPER:
         # Get the potentially plagiarized document:
         plagiarized = compile_plag_document()
         if plagiarized is False:
@@ -446,6 +476,12 @@ if __name__ == '__main__':
         else:
             print("LCSS() has been disabled for plagiarism detection.")
 
+        if ENABLE_RabinKarp:
+            rabinkarp_results = Results()
+            rabinkarp_wrapper(corpus, plagiarized, rabinkarp_results)
+        else:
+            print("\nKMPSearch() has been disabled for plagiarism detection.")
+
         if VERBOSE:
             print("Plagiarism detection on document '{doc}' against {corpus} was successfully completed.".format(doc=plagiarized.filename,corpus=corpus.keys))
         else:
@@ -458,6 +494,10 @@ if __name__ == '__main__':
         if ENABLE_LCSS:
             print("*** Results for LCSS algorithm:")
             lcss_results.display()
+            print()
+        if ENABLE_RabinKarp:
+            print("*** Results for RabinKarp algorithm:")
+            rabinkarp_results.display()
             print()
 
 
