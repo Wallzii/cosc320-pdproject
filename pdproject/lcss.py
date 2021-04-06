@@ -12,7 +12,13 @@ class Match:
         self.ending_index = ending_index
 
 
-def LCSS(S, T):
+def LCSS(S: str, T: str) -> float:
+    """
+    S = String
+    T = Pattern
+    m = S.length
+    n = T.length
+    """
     m = len(S)
     n = len(T)
     # matches = []
