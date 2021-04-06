@@ -630,15 +630,15 @@ if __name__ == '__main__':
     if ANALYSIS_RabinKarp_WRAPPER:
         # Plot KMP_wrapper(): w = z
         nValuesWrap, tValuesWrap = tryItABunchKMPWrapper( rabinkarp_wrapper_analysis, startN = 50, endN = 1000, stepSize=50, numTrials=1)
-        plt.plot(nValuesWrap, tValuesWrap, color="red", label="KMP_wrapper(KMPSearch()) w = z; n = z, m = z")
+        plt.plot(nValuesWrap, tValuesWrap, color="red", label="rabinkarp_wrapper(RabinKarp()) w = z; n = z, m = z")
         
         # Plot KMP_wrapper(): w < z
         # nValuesWrapLessPatterns, tValuesWrapLessPatterns = tryItABunchKMPWrapper( rabinkarp_wrapper_analysis, startN = 50, endN = 1000, stepSize=50, numTrials=1, amtPatternsSmaller = True)
-        # plt.plot(nValuesWrapLessPatterns, tValuesWrapLessPatterns, color="yellow", label="KMP_wrapper(KMPSearch()) w < z, w = (z / 2); n = z, m = z")
+        # plt.plot(nValuesWrapLessPatterns, tValuesWrapLessPatterns, color="yellow", label="rabinkarp_wrapper(RabinKarp()) w < z, w = (z / 2); n = z, m = z")
         
         # Plot KMP_wrapper(): w > z
         # nValuesWrapLessPatterns, tValuesWrapLessPatterns = tryItABunchKMPWrapper( rabinkarp_wrapper_analysis, startN = 50, endN = 1000, stepSize=50, numTrials=1, amtPatternsLarger = True)
-        # plt.plot(nValuesWrapLessPatterns, tValuesWrapLessPatterns, color="green", label="KMP_wrapper(KMPSearch()) w > z, w = (z * 2); n = z, m = z")
+        # plt.plot(nValuesWrapLessPatterns, tValuesWrapLessPatterns, color="green", label="rabinkarp_wrapper(RabinKarp()) w > z, w = (z * 2); n = z, m = z")
 
         plt.xlabel("Length of set S[], z", fontsize=28)
         plt.xticks(fontsize=24)
