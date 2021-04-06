@@ -11,7 +11,7 @@ def RabinKarp(pattern: str, string: str) -> float:
     n = len(string)
     m = len(pattern)
     d = 256
-    q = 13
+    q = 101
     hash_p = 0
     hash_t = 0
     h = 1
@@ -34,6 +34,7 @@ def RabinKarp(pattern: str, string: str) -> float:
 
     for i in range(n - m + 1):
         if hash_p == hash_t:
+            # print("TEST")
             for j in range(m):
                 if string[i + j] != pattern[j]:
                     break
