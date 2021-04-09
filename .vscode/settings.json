@@ -1,3 +1,4 @@
 {
+    "python.analysis.extraPaths": ["./pdproject"],
     "python.pythonPath": "C:\\Python39\\python.exe"
 }

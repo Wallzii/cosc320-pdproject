@@ -12,9 +12,9 @@ def KMPSearch(pattern: str, string: str) -> int:
     n = len(string)
     lps = LPS(pattern)
 
-    if m > n:
-        print("Invalid pattern length: pattern is longer than string; aborting KMP.")
-        return 0
+    # if m > n:
+    #     print("Invalid pattern length: pattern is longer than string; aborting KMP.")
+    #     return 0
     
     matched = 0
     total_matches = 0
@@ -28,13 +28,12 @@ def KMPSearch(pattern: str, string: str) -> int:
             if VERBOSE: print("Pattern occurs in string at index {x}.".format(x=(i - m) + 1))
             matched = lps[matched - 1]
             total_matches += 1
-    if not ANALYSIS_KMP:
-        hit_rate = (total_matches * m) / n * 100
-        if total_matches != 0:
-            if VERBOSE:
-                print("Pattern was found in string {matches} time(s).".format(matches=total_matches))
-                print("There is a {:.2f}% hit rate of the pattern in string.".format(hit_rate))
-        return hit_rate
+    hit_rate = (total_matches * m) / n * 100
+    if total_matches != 0:
+        if VERBOSE:
+            print("Pattern was found in string {matches} time(s).".format(matches=total_matches))
+            print("There is a {:.2f}% hit rate of the pattern in string.".format(hit_rate))
+    return hit_rate
 
 
 def LPS(pattern):
@@ -62,4 +61,4 @@ if __name__ == '__main__':
     # string = "TheSunIsBrightSunIsDark"
     # pattern = "SunIs"
 
-    KMPSearch(pattern, string)
+    print(KMPSearch(pattern, string))
