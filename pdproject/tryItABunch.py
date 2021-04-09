@@ -120,14 +120,16 @@ def tryItABunchKMPWrapper(myFn, startN=10, endN=100, stepSize=10, numTrials=20, 
         # run myFn several times and average to get a decent idea.
         runtime = 0
         for t in range(numTrials):
-            pattern = ''.join(choice(ascii_uppercase) for i in range(n)) # generate a random string of length n
             string = ''.join(choice(ascii_uppercase) for i in range(n)) # generate a random string of length n
             if amtPatternsSmaller is True:
                 amt_patters = (int)(n / 2)
+                pattern = ''.join(choice(ascii_uppercase) for i in range((int)(n / 2))) # generate a random string of length n
             elif amtPatternsLarger is True:
                 amt_patters = (int)(n * 2)
+                pattern = ''.join(choice(ascii_uppercase) for i in range((int)(n * 2))) # generate a random string of length n
             else:
                 amt_patters = n
+                pattern = ''.join(choice(ascii_uppercase) for i in range(n)) # generate a random string of length n
             amt_corpus_docs = n
             start = time.time()
             myFn(amt_patters, amt_corpus_docs, pattern, string)
@@ -228,13 +230,15 @@ def tryItABunchLCSSWrapper(myFn, startN=10, endN=100, stepSize=10, numTrials=20,
         # run myFn several times and average to get a decent idea.
         runtime = 0
         for t in range(numTrials):
-            pattern = ''.join(choice(ascii_uppercase) for i in range(n)) # generate a random string of length n
             string = ''.join(choice(ascii_uppercase) for i in range(n)) # generate a random string of length n
             if amtPatternsSmaller is True:
                 amt_patters = (int)(n / 2)
+                pattern = ''.join(choice(ascii_uppercase) for i in range((int)(n / 2))) # generate a random string of length n
             elif amtPatternsLarger is True:
                 amt_patters = (int)(n * 2)
+                pattern = ''.join(choice(ascii_uppercase) for i in range((int)(n * 2))) # generate a random string of length n
             else:
+                pattern = ''.join(choice(ascii_uppercase) for i in range(n)) # generate a random string of length n
                 amt_patters = n
             amt_corpus_docs = n
             start = time.time()
@@ -248,7 +252,7 @@ def tryItABunchLCSSWrapper(myFn, startN=10, endN=100, stepSize=10, numTrials=20,
     return nValues, tValues
 
 
-# Analysis specific to KMPSearch (n = m variant):
+# Analysis specific to RabinKarp (n = m variant):
 def tryItABunchRabinKarpEqual(myFn, startN=10, endN=100, stepSize=10, numTrials=20):
     nValues = []
     tValues = []
