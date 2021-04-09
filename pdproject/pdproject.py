@@ -31,6 +31,8 @@ ANALYSIS_LCSS = config.getboolean('ANALYSIS', 'RuntimeAnalysis_LCSS')
 ANALYSIS_LCSS_WRAPPER = config.getboolean('ANALYSIS', 'RuntimeAnalysis_LCSS_Wrapper')
 ANALYSIS_RabinKarp = config.getboolean('ANALYSIS', 'RuntimeAnalysis_RabinKarp')
 ANALYSIS_RabinKarp_WRAPPER = config.getboolean('ANALYSIS', 'RuntimeAnalysis_RabinKarp_Wrapper')
+ANALYSIS_ALL = config.getboolean('ANALYSIS', 'RuntimeAnalysis_All')
+ANALYSIS_ALL_WRAPPER = config.getboolean('ANALYSIS', 'RuntimeAnalysis_All_Wrapper')
 
 
 class Document:
@@ -557,16 +559,16 @@ if __name__ == '__main__':
         # plt.plot(nValues, tValues, color="blue", label="n^2") 
 
         # Plot LCSS(): m = n:
-        nValuesEqual, tValuesEqual = tryItABunchLCSSEqual( LCSS, startN = 50, endN = 10000, stepSize=50, numTrials=10)
+        nValuesEqual, tValuesEqual = tryItABunchLCSSEqual( LCSS, startN = 50, endN = 1000, stepSize=50, numTrials=10)
         plt.plot(nValuesEqual, tValuesEqual, color="blue", label="LCSS() m = n")
 
         # Plot LCSS(): m < n:
-        # nValues, tValues = tryItABunchLCSS( LCSS, startN = 50, endN = 5000, stepSize=50, numTrials=20, patternLength = 20)
-        # plt.plot(nValues, tValues, color="red", label="LCSS() m < n")
+        nValues, tValues = tryItABunchLCSS( LCSS, startN = 50, endN = 10000, stepSize=50, numTrials=10, patternLength = 20)
+        plt.plot(nValues, tValues, color="red", label="LCSS() m < n")
 
         # # Plot LCSS(): m > n:
-        # nValuesLargePat, tValuesLargePat = tryItABunchLCSSLargePat( LCSS, startN = 50, endN = 5000, stepSize=50, numTrials=20, stringLength = 20)
-        # plt.plot(nValuesLargePat, tValuesLargePat, color="green", label="LCSS() m > n")
+        nValuesLargePat, tValuesLargePat = tryItABunchLCSSLargePat( LCSS, startN = 50, endN = 10000, stepSize=50, numTrials=10, stringLength = 20)
+        plt.plot(nValuesLargePat, tValuesLargePat, color="green", label="LCSS() m > n")
 
         plt.xlabel("Length of string, n", fontsize=28)
         plt.xticks(fontsize=24)
@@ -579,16 +581,16 @@ if __name__ == '__main__':
 
     if ANALYSIS_LCSS_WRAPPER:
         # Plot LCSS_wrapper(): w = z
-        nValuesWrap, tValuesWrap = tryItABunchLCSSWrapper( LCSS_wrapper_analysis, startN = 50, endN = 200, stepSize=50, numTrials=1)
+        nValuesWrap, tValuesWrap = tryItABunchLCSSWrapper( LCSS_wrapper_analysis, startN = 50, endN = 500, stepSize=50, numTrials=1)
         plt.plot(nValuesWrap, tValuesWrap, color="red", label="LCSS_wrapper(LCSS()) w = z; n = z, m = z")
         
         # Plot LCSS_wrapper(): w < z
-        nValuesWrapLessPatterns, tValuesWrapLessPatterns = tryItABunchLCSSWrapper( LCSS_wrapper_analysis, startN = 50, endN = 1000, stepSize=50, numTrials=1, amtPatternsSmaller = True)
-        plt.plot(nValuesWrapLessPatterns, tValuesWrapLessPatterns, color="yellow", label="LCSS_wrapper(LCSS()) w < z, w = (z / 2); n = z, m = z")
+        # nValuesWrapLessPatterns, tValuesWrapLessPatterns = tryItABunchLCSSWrapper( LCSS_wrapper_analysis, startN = 50, endN = 250, stepSize=50, numTrials=1, amtPatternsSmaller = True)
+        # plt.plot(nValuesWrapLessPatterns, tValuesWrapLessPatterns, color="yellow", label="LCSS_wrapper(LCSS()) w < z, w = (z / 2); n = z, m = (z / 2)")
         
         # Plot LCSS_wrapper(): w > z
-        nValuesWrapLessPatterns, tValuesWrapLessPatterns = tryItABunchLCSSWrapper( LCSS_wrapper_analysis, startN = 50, endN = 1000, stepSize=50, numTrials=1, amtPatternsLarger = True)
-        plt.plot(nValuesWrapLessPatterns, tValuesWrapLessPatterns, color="green", label="LCSS_wrapper(LCSS()) w > z, w = (z * 2); n = z, m = z")
+        # nValuesWrapLessPatterns, tValuesWrapLessPatterns = tryItABunchLCSSWrapper( LCSS_wrapper_analysis, startN = 50, endN = 250, stepSize=50, numTrials=1, amtPatternsLarger = True)
+        # plt.plot(nValuesWrapLessPatterns, tValuesWrapLessPatterns, color="green", label="LCSS_wrapper(LCSS()) w > z, w = (z * 2); n = z, m = (z * 2)")
 
         plt.xlabel("Length of set S[], z", fontsize=28)
         plt.xticks(fontsize=24)
@@ -607,15 +609,16 @@ if __name__ == '__main__':
 
         # Plot KMPSearch(): m = n:
         nValuesEqual, tValuesEqual = tryItABunchKMPEqual( RabinKarp, startN = 50, endN = 10000, stepSize=50, numTrials=10)
-        # nValuesEqual, tValuesEqual = tryItABunchRabinKarpEqual( RabinKarp, startN = 50, endN = 10000, stepSize=50, numTrials=10)
+        # nValuesEqual2, tValuesEqual2 = tryItABunchRabinKarpEqual( RabinKarp, startN = 50, endN = 10000, stepSize=50, numTrials=10)
         plt.plot(nValuesEqual, tValuesEqual, color="blue", label="RabinKarp() m = n")
+        # plt.plot(nValuesEqual2, tValuesEqual2, color="darkblue", label="RabinKarp() m = n")
 
         # Plot KMPSearch(): m < n:
-        # nValues, tValues = tryItABunchKMP( RabinKarp, startN = 50, endN = 1000, stepSize=50, numTrials=10, patternLength = 20)
-        # plt.plot(nValues, tValues, color="red", label="RabinKarp() m < n")
+        nValues, tValues = tryItABunchKMP( RabinKarp, startN = 50, endN = 10000, stepSize=50, numTrials=10, patternLength = 20)
+        plt.plot(nValues, tValues, color="red", label="RabinKarp() m < n")
 
-        # # Plot KMPSearch(): m > n:
-        # nValuesLargePat, tValuesLargePat = tryItABunchKMPLargePat( RabinKarp, startN = 50, endN = 1000, stepSize=50, numTrials=10, stringLength = 20)
+        # # Plot KMPSearch(): m > n: *** THIS IS AN INVALID TEST AS m MUST BE <= n ***
+        # nValuesLargePat, tValuesLargePat = tryItABunchKMPLargePat( RabinKarp, startN = 50, endN = 10000, stepSize=50, numTrials=10, stringLength = 20)
         # plt.plot(nValuesLargePat, tValuesLargePat, color="green", label="RabinKarp() m > n")
 
         plt.xlabel("Length of string, n", fontsize=28)
@@ -646,4 +649,104 @@ if __name__ == '__main__':
         plt.ylabel("Time(ms)", fontsize=28)
         plt.legend(fontsize=22)
         plt.title("RabinKarp Runtimes within Wrapper Function", fontsize=30)
+        plt.show()
+
+
+    if ANALYSIS_ALL:
+        '''
+        KMP ANALYSIS
+        '''
+        # Plot KMPSearch(): m = n:
+        nValuesEqual, tValuesEqual = tryItABunchKMPEqual( KMPSearch, startN = 50, endN = 10000, stepSize=50, numTrials=20)
+        plt.plot(nValuesEqual, tValuesEqual, color="red", label="KMPSearch() m = n")
+        # Plot KMPSearch(): m < n:
+        # nValues, tValues = tryItABunchKMP( KMPSearch, startN = 50, endN = 20000, stepSize=50, numTrials=10, patternLength = 20)
+        # plt.plot(nValues, tValues, color="red", label="KMPSearch() m < n")
+        # # Plot KMPSearch(): m > n:
+        # nValuesLargePat, tValuesLargePat = tryItABunchKMPLargePat( KMPSearch, startN = 50, endN = 20000, stepSize=50, numTrials=10, stringLength = 20)
+        # plt.plot(nValuesLargePat, tValuesLargePat, color="red", label="KMPSearch() m > n")
+
+        '''
+        LCSS ANALYSIS
+        '''
+        # Plot LCSS(): m = n:
+        # nValuesEqual, tValuesEqual = tryItABunchLCSSEqual( LCSS, startN = 50, endN = 1000, stepSize=50, numTrials=10)
+        # plt.plot(nValuesEqual, tValuesEqual, color="green", label="LCSS() m = n")
+        # Plot LCSS(): m < n:
+        # nValues, tValues = tryItABunchLCSS( LCSS, startN = 50, endN = 5000, stepSize=50, numTrials=10, patternLength = 20)
+        # plt.plot(nValues, tValues, color="green", label="LCSS() m < n")
+        # # Plot LCSS(): m > n:
+        # nValuesLargePat, tValuesLargePat = tryItABunchLCSSLargePat( LCSS, startN = 50, endN = 5000, stepSize=50, numTrials=10, stringLength = 20)
+        # plt.plot(nValuesLargePat, tValuesLargePat, color="green", label="LCSS() m > n")
+
+        '''
+        RABIN-KARP ANALYSIS
+        '''
+        # Plot KMPSearch(): m = n:
+        nValuesEqual, tValuesEqual = tryItABunchKMPEqual( RabinKarp, startN = 50, endN = 10000, stepSize=50, numTrials=20)
+        # nValuesEqual, tValuesEqual = tryItABunchRabinKarpEqual( RabinKarp, startN = 50, endN = 10000, stepSize=50, numTrials=10)
+        plt.plot(nValuesEqual, tValuesEqual, color="blue", label="RabinKarp() m = n")
+        # Plot KMPSearch(): m < n:
+        # nValues, tValues = tryItABunchKMP( RabinKarp, startN = 50, endN = 1000, stepSize=50, numTrials=10, patternLength = 20)
+        # plt.plot(nValues, tValues, color="blue", label="RabinKarp() m < n")
+        # # Plot KMPSearch(): m > n:
+        # nValuesLargePat, tValuesLargePat = tryItABunchKMPLargePat( RabinKarp, startN = 50, endN = 1000, stepSize=50, numTrials=10, stringLength = 20)
+        # plt.plot(nValuesLargePat, tValuesLargePat, color="blue", label="RabinKarp() m > n")
+
+        plt.xlabel("Length of string, n", fontsize=28)
+        plt.xticks(fontsize=24)
+        plt.yticks(fontsize=24)
+        plt.ylabel("Time(ms)", fontsize=28)
+        plt.legend(fontsize=22)
+        plt.title("Algorithm Runtimes", fontsize=30)
+        plt.show()
+
+
+    if ANALYSIS_ALL_WRAPPER:
+        '''
+        KMP WRAPPER ANALYSIS
+        '''
+        # Plot KMP_wrapper(): w = z
+        nValuesWrap, tValuesWrap = tryItABunchKMPWrapper( KMP_wrapper_analysis, startN = 50, endN = 1000, stepSize=50, numTrials=1)
+        plt.plot(nValuesWrap, tValuesWrap, color="red", label="KMP_wrapper(KMPSearch()) w = z; n = z, m = z")
+        # Plot KMP_wrapper(): w < z
+        # nValuesWrapLessPatterns, tValuesWrapLessPatterns = tryItABunchKMPWrapper( KMP_wrapper_analysis, startN = 50, endN = 1000, stepSize=50, numTrials=1, amtPatternsSmaller = True)
+        # plt.plot(nValuesWrapLessPatterns, tValuesWrapLessPatterns, color="red", label="KMP_wrapper(KMPSearch()) w < z, w = (z / 2); n = z, m = z")
+        # Plot KMP_wrapper(): w > z
+        # nValuesWrapLessPatterns, tValuesWrapLessPatterns = tryItABunchKMPWrapper( KMP_wrapper_analysis, startN = 50, endN = 1000, stepSize=50, numTrials=1, amtPatternsLarger = True)
+        # plt.plot(nValuesWrapLessPatterns, tValuesWrapLessPatterns, color="red", label="KMP_wrapper(KMPSearch()) w > z, w = (z * 2); n = z, m = z")
+
+
+        '''
+        LCSS WRAPPER ANALYSIS
+        '''
+        # Plot LCSS_wrapper(): w = z
+        # nValuesWrap, tValuesWrap = tryItABunchLCSSWrapper( LCSS_wrapper_analysis, startN = 50, endN = 1000, stepSize=50, numTrials=1)
+        # plt.plot(nValuesWrap, tValuesWrap, color="green", label="LCSS_wrapper(LCSS()) w = z; n = z, m = z")
+        # Plot LCSS_wrapper(): w < z
+        # nValuesWrapLessPatterns, tValuesWrapLessPatterns = tryItABunchLCSSWrapper( LCSS_wrapper_analysis, startN = 50, endN = 1000, stepSize=50, numTrials=1, amtPatternsSmaller = True)
+        # plt.plot(nValuesWrapLessPatterns, tValuesWrapLessPatterns, color="green", label="LCSS_wrapper(LCSS()) w < z, w = (z / 2); n = z, m = z")
+        # Plot LCSS_wrapper(): w > z
+        # nValuesWrapLessPatterns, tValuesWrapLessPatterns = tryItABunchLCSSWrapper( LCSS_wrapper_analysis, startN = 50, endN = 1000, stepSize=50, numTrials=1, amtPatternsLarger = True)
+        # plt.plot(nValuesWrapLessPatterns, tValuesWrapLessPatterns, color="green", label="LCSS_wrapper(LCSS()) w > z, w = (z * 2); n = z, m = z")
+
+        '''
+        RABIN-KARP WRAPPER ANALYSIS
+        '''
+        # Plot KMP_wrapper(): w = z
+        nValuesWrap, tValuesWrap = tryItABunchKMPWrapper( rabinkarp_wrapper_analysis, startN = 50, endN = 500, stepSize=50, numTrials=1)
+        plt.plot(nValuesWrap, tValuesWrap, color="blue", label="rabinkarp_wrapper(RabinKarp()) w = z; n = z, m = z")
+        # Plot KMP_wrapper(): w < z
+        # nValuesWrapLessPatterns, tValuesWrapLessPatterns = tryItABunchKMPWrapper( rabinkarp_wrapper_analysis, startN = 50, endN = 1000, stepSize=50, numTrials=1, amtPatternsSmaller = True)
+        # plt.plot(nValuesWrapLessPatterns, tValuesWrapLessPatterns, color="blue", label="rabinkarp_wrapper(RabinKarp()) w < z, w = (z / 2); n = z, m = z")
+        # Plot KMP_wrapper(): w > z
+        # nValuesWrapLessPatterns, tValuesWrapLessPatterns = tryItABunchKMPWrapper( rabinkarp_wrapper_analysis, startN = 50, endN = 1000, stepSize=50, numTrials=1, amtPatternsLarger = True)
+        # plt.plot(nValuesWrapLessPatterns, tValuesWrapLessPatterns, color="blue", label="rabinkarp_wrapper(RabinKarp()) w > z, w = (z * 2); n = z, m = z")
+
+        plt.xlabel("Length of set S[], z", fontsize=28)
+        plt.xticks(fontsize=24)
+        plt.yticks(fontsize=24)
+        plt.ylabel("Time(ms)", fontsize=28)
+        plt.legend(fontsize=22)
+        plt.title("Algorithm Runtimes within Wrapper Functions", fontsize=30)
         plt.show()
