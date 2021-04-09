@@ -1,8 +1,3 @@
-"""
-Class used to store and report results data on algorithms used for plagiarism detection.
-"""
-
-
 import numpy as np
 
 import document
